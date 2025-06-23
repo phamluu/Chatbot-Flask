@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Quản lý người dùng</h1>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Add Chatbot Response Form -->
+<div class="card mb-4">
+  <div class="card-header">Thêm người dùng</div>
+  <div class="card-body">
+    <form method="POST" action="/user">
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input class="form-control" id="username" name="username" required>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input class="form-control" id="email" name="email" rows="3" required>
+      <div class="mb-3">
+        <label for="user_type" class="form-label">Loại người dùng</label>
+        <input class="form-control" id="user_type" name="user_type" rows="3" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Thêm người dùng</button>
+    </form>
+  </div>
+</div>
+
+<table class="table table-bordered">
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Loại người dùng</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <td>{{ user.id }}</td>
+      <td>
+        <form method="POST" action="/user/update/{{ user.id }}" class="d-inline">
+          <input type="text" name="keyword" class="form-control" value="{{ user.username }}" required>
+      </td>
+      <td>
+        <input type="text" name="email" class="form-control" value="{{ user.email }}" required>
+      </td>
+      <td>
+        <input type="text" name="user_type" class="form-control" value="{{ user.user_type }}" required>
+      </td>
+      <td>
+          <button type="submit" class="btn btn-success btn-sm">Save</button>
+        </form>
+        <form method="POST" action="/user/delete/{{ user.id }}" class="d-inline">
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

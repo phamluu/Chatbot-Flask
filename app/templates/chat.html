@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Chat với In Ấn Hồng Len</title>
+    <style>
+        #close-btn{
+            cursor: pointer; padding: 5px 10px; color: red; font-weight: 700;
+        }
+        .title{
+            display: flex; justify-content: space-between; padding: 10px 0;
+        }
+        .user {
+            max-width: 60%;
+            text-align: right;
+            border: #8080802e 1px solid;
+            float: right;
+            padding: 5px;
+            background: #00800021;
+            border-radius: 5px;
+        }
+        .bot {
+            max-width: 60%;
+            border: #8080802e 1px solid;
+            float: left;
+            padding: 5px;
+            background: #fff;
+            border-radius: 5px;
+        }
+        .message {
+            display: block;
+            clear: both;
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <span>Chat với chúng tôi</span>
+            <div class="action">
+            </div>
+        </div>
+        <div id="chatbox" style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:scroll; background: #8080801c;"></div>
+        <div class="form-group mt-3" style="display: flex;">
+            <input type="text" id="message" placeholder="Nhập tin nhắn của bạn" class="form-control"/>
+            <button onclick="sendMessage()" class="btn btn-success">Gửi</button>
+        </div>
+    </div>
+    <script>
+        async function sendMessage() {
+            const message = document.getElementById("message").value;
+            if (!message.trim()) return;
+            const response = await fetch("https://chatbot.inanhonglen.com/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message })
+            });
+            const data = await response.json();
+            const chatbox = document.getElementById("chatbox");
+            document.getElementById("chatbox").innerHTML += `<p class="message user"><b>Bạn:</b> ${message}</p>`;
+            document.getElementById("chatbox").innerHTML += `<p class="message bot"><b>Bot:</b> ${data.response}</p>`;
+            document.getElementById("message").value = "";
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+                const input = document.getElementById("message");
+                input.addEventListener("keypress", (event) => {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        sendMessage(); 
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

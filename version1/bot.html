@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò chuyện với khách hàng</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Trò chuyện với khách hàng</h1>
+        
+        <div id="chat-box" class="chat-box">
+            <!-- Tin nhắn sẽ hiển thị ở đây -->
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Khi nhận tin nhắn mới của khách từ server
+        socket.on('message', function(msg) {
+            // Hiển thị tin nhắn theo người gửi
+            appendMessage(msg.message, msg.sender);
+        });
+
+        // Gửi thông báo nhân viên đã tham gia vào cuộc trò chuyện
+        socket.emit('staff_join'); 
+
+        // Khi nhận thông báo nhân viên đã tham gia vào cuộc trò chuyện
+        socket.on('staff_join', function(msg) {
+            appendMessage(msg, 'bot');  // Gửi thông báo cho khách hàng rằng nhân viên đã tham gia
+        });
+
+        // Khi nhân viên gửi tin nhắn
+        document.getElementById('send-btn').addEventListener('click', function() {
+            const userMessage = document.getElementById('message-input').value;
+            if (userMessage.trim() !== "") {
+                const sender = 'staff'; // Tin nhắn từ nhân viên
+                appendMessage(userMessage, sender);  // Hiển thị tin nhắn của nhân viên
+                // Gửi tin nhắn đến server qua WebSocket
+                const messageData = {
+                    message: userMessage,
+                    sender: sender
+                };
+                socket.send(messageData);
+                document.getElementById('message-input').value = '';  // Xóa input sau khi gửi tin nhắn
+            }
+        });
+
+        // Hàm thêm tin nhắn vào giao diện chat
+        function appendMessage(message, sender) {
+            if (sender !== undefined) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);  // 'staff', 'customer', 'bot'
+                messageDiv.innerText = (sender.charAt(0).toUpperCase() + sender.slice(1)) + ": " + message;  // Định dạng tên người gửi
+                document.getElementById('chat-box').appendChild(messageDiv);
+            }
+        }
+    </script>
+</body>
+</html>

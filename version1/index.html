@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò chuyện với In Ấn Hồng Len</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Trò chuyện với In Ấn Hồng Len</h1>
+        
+        <div id="chat-box" class="chat-box">
+            <!-- Tin nhắn sẽ hiển thị ở đây -->
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Khi nhận tin nhắn mới của nhân viên từ server
+        socket.on('message', function(msg) {
+            if (msg.sender === 'staff') {
+                appendMessage(msg.message, 'staff');
+            } else {
+                appendMessage(msg.message, 'customer');
+            }
+        });
+
+        // Khi nhân viên tham gia vào cuộc trò chuyện
+        socket.on('staff_join', function(msg) {
+            appendMessage(msg, 'bot');
+        });
+
+        document.getElementById('send-btn').addEventListener('click', function() {
+            const userMessage = document.getElementById('message-input').value;
+            if (userMessage.trim() !== "") {
+                const sender = 'customer'; 
+                appendMessage(userMessage, sender);
+                // Gửi tin nhắn đến server qua WebSocket
+                const messageData = {
+                    message: userMessage,
+                    sender: sender
+                };
+                socket.send(messageData);
+                document.getElementById('message-input').value = '';
+            }
+        });
+
+        // Hàm thêm tin nhắn vào giao diện chat
+        function appendMessage(message, sender) {
+            if (sender !== undefined) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);  // 'staff', 'customer', 'bot'
+                messageDiv.innerText = (sender.charAt(0).toUpperCase() + sender.slice(1)) + ": " + message;  // Định dạng tên người gửi
+                document.getElementById('chat-box').appendChild(messageDiv);
+            }
+        }
+    </script>
+</body>
+</html>

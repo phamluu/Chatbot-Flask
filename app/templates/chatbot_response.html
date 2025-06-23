@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Manage Chatbot Responses</h1>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Add Chatbot Response Form -->
+<div class="card mb-4">
+  <div class="card-header">Add New Response</div>
+  <div class="card-body">
+    <form method="POST" action="/post-chatbot-response">
+      <div class="mb-3">
+        <label for="keyword" class="form-label">Keyword</label>
+        <input type="text" class="form-control" id="keyword" name="keyword" required>
+      </div>
+      <div class="mb-3">
+        <label for="response" class="form-label">Response</label>
+        <textarea class="form-control" id="response" name="response" rows="3" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Response</button>
+    </form>
+  </div>
+</div>
+
+<!-- Chatbot Response List -->
+<table class="table table-bordered">
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>Keyword</th>
+      <th>Response</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for response in responses %}
+    <tr>
+      <td>{{ response.id }}</td>
+      <td>
+        <form method="POST" action="/chatbot-response/update/{{ response.id }}" class="d-inline">
+          <input type="text" name="keyword" class="form-control" value="{{ response.keyword }}" required>
+      </td>
+      <td>
+          <textarea name="response" class="form-control" rows="2" required>{{ response.response }}</textarea>
+      </td>
+      <td>
+          <button type="submit" class="btn btn-success btn-sm">Save</button>
+        </form>
+        <form method="POST" action="/chatbot-response/delete/{{ response.id }}" class="d-inline">
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
