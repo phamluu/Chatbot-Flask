@@ -1,6 +1,6 @@
-Lệnh chạy project: $ python run.py
-Các router:
-/user
-/staff
-/chatbot-response
-/faq
+Lệnh chạy project: $ python run.py </br>
+Các router: </br>
+/user </br>
+/staff </br>
+/chatbot-response </br>
+/faq </br>
