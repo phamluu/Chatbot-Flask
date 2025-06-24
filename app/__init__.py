@@ -12,12 +12,17 @@ db = SQLAlchemy(app)
 socketio = SocketIO(app)
 
 # Đăng ký các blueprint
-from app.views import user_bp, staff_bp, chat_bp, faq_bp, chatbot_bp
+from app.views import user_bp, staff_bp, chat_bp, faq_bp, chatbot_bp   
 app.register_blueprint(user_bp)
 app.register_blueprint(staff_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(faq_bp)
 app.register_blueprint(chatbot_bp)
+
+# Đăng ký API chatbot riêng biệt
+from app.views.chat_api import chatbot_api
+app.register_blueprint(chatbot_api)
+
 
 # Cấu hình chạy ứng dụng Flask
 if __name__ == "__main__":

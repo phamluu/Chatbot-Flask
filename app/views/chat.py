@@ -7,10 +7,10 @@ from app.models import ChatbotResponse, Faq, Message, User
 from app.models import Conversation
 from app import db, socketio
 from app.views.staff import get_conversations_by_staff_id
-from transformers import pipeline
+# from transformers import pipeline
 
 # Khởi tạo mô hình NLP (ở đây sử dụng GPT-2)
-nlp_pipeline = pipeline("text-generation", model="gpt2")
+# nlp_pipeline = pipeline("text-generation", model="gpt2")
 
 chat_bp = Blueprint('chat', __name__)
 
