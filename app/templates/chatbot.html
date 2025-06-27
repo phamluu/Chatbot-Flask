@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+    <style>
+        body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
+        #result { margin-top: 1em; padding: 1em; background: #fff; border: 1px solid #ccc; }
+        textarea, input[type="text"] { width: 100%; padding: 0.5em; margin-top: 0.5em; }
+        button { padding: 0.6em 1.2em; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h1>💬 Chatbot Demo</h1>
+    <form id="chat-form">
+        <label for="message">Nhập nội dung:</label>
+        <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..." required />
+        <button type="submit">Gửi</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('chat-form');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = document.getElementById('message').value;
+            resultDiv.innerHTML = "⏳ Đang xử lý...";
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await res.json();
+                resultDiv.innerHTML = `<h3>Phản hồi:</h3><div>${data.html || data.response}</div>`;
+            } catch (err) {
+                resultDiv.innerHTML = "❌ Lỗi khi gửi yêu cầu.";
+            }
+        });
+    </script>
+</body>
+</html>

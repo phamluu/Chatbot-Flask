@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./models/vi_",
+        "./models/vi_",
+        "./models/vi_"
+    ]
+}
