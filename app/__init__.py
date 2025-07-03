@@ -1,9 +1,15 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_socketio import SocketIO
+
+from version1 import app
+
+#from version1 import app
 from .config import Config
 
 db = SQLAlchemy()
+migrate = Migrate() 
 socketio = SocketIO()
 
 def create_app():
@@ -12,6 +18,7 @@ def create_app():
 
     # Khởi tạo extensions
     db.init_app(app)
+    migrate.init_app(app, db)
     socketio.init_app(app)
 
     # Đăng ký các blueprint

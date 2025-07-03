@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h4 class="text-center">Quản lý phân loại ý định</h1>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+<style>
+  .form-intent label{
+    width: 150px;
+    float: left;
+  }
+  .form-intent input {
+    width: -webkit-fill-available;
+  }
+</style>
+<!-- Add Chatbot Response Form -->
+<div class="card mb-4">
+  <div class="card-header">Thêm phân loại ý định</div>
+  <div class="card-body">
+    <form method="POST" action="/intent" class="form-intent">
+      <div class="mb-3">
+        <label for="intent_code" class="form-label">intent_code</label>
+        <input class="form-control" id="intent_code" name="intent_code" required placeholder="GREETING">
+      </div>
+      <div class="mb-3">
+        <label for="intent_name	" class="form-label">intent_name</label>
+        <input class="form-control" id="intent_name	" name="intent_name" rows="3" required placeholder="Chào hỏi" >
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Mô tả</label>
+        <input class="form-control" id="description" name="description" rows="3">
+      </div>
+      <button type="submit" class="btn btn-primary">Thêm</button>
+    </form>
+  </div>
+</div>
+
+<table class="table table-bordered">
+  <thead class="table-light">
+    <tr>
+      <th>#</th>
+      <th>intent_code</th>
+      <th>intent_name</th>
+      <th>Câu hỏi</th>
+      <th>Trả lời</th>
+      <th>description</th>
+      <th style="width: 150px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for intent in intents %}
+    <tr>
+      <td>{{ intent.id }}</td>
+      <td>
+        <form method="POST" action="/intent/update/{{ intent.id }}" class="d-inline">
+          <input type="text" name="intent_code" class="form-control" value="{{ intent.intent_code }}"  required >
+      </td>
+      <td>
+        <input type="text" name="intent_name" class="form-control" value="{{ intent.intent_name }}" required >
+      </td>
+      <td><a href="/intent_input/{{ intent.id }}">{{ intent.inputs|length }}</a></td>
+      <td><a href="/intent_response/{{ intent.id }}">{{ intent.responses|length }}</a></td>
+      <td>
+        <input type="text" name="description" class="form-control" value="{{ intent.description }}" >
+      </td>
+      <td>
+          <button type="submit" class="btn btn-success btn-sm">Save</button>
+        </form>
+        <form method="POST" action="/intent/delete/{{ intent.id }}" class="d-inline">
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,4 +1,16 @@
 flask
+flask_sqlalchemy
+flask_socketio
 spacy
 pyvi
 langdetect
+markdown2
+python-dotenv
+scikit-learn
+torch
+transformers
+pymysql
+protobuf
+pandas
+flask-migrate
+alembic

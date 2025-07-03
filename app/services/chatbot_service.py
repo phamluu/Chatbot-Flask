@@ -37,24 +37,9 @@ def generate_online_response(prompt):
         return None
 
 def process_message(message):
-    keywords = extract_keywords(message)
-    print("🔑 Từ khóa trích xuất:", keywords)
-
-    reference_data = fetch_data_from_web(keywords)
-
-    prompt = f"""Người dùng hỏi: "{message}"
-
-Dưới đây là thông tin dữ liệu liên quan được hệ thống tìm thấy:
-{reference_data}
-
-Hãy trả lời người dùng một cách tự nhiên và hữu ích dựa trên thông tin ở trên."""
-
-    response = generate_online_response(prompt)
-    source = "openrouter"
-
-    if response is None:
-        response = generate_local_response(message)
-        source = "local"
+    # Sử dụng mô hình nội bộ tiếng Việt (microBERT)
+    response = generate_local_response(message)
+    source = "microbert"
 
     html = markdown2.markdown(response)
 

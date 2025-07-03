@@ -1,31 +1,151 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Chatbot</title>
     <style>
-        body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
-        #result { margin-top: 1em; padding: 1em; background: #fff; border: 1px solid #ccc; }
-        textarea, input[type="text"] { width: 100%; padding: 0.5em; margin-top: 0.5em; }
-        button { padding: 0.6em 1.2em; margin-top: 1em; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 2em;
+            background: #f0f2f5;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #result {
+            margin-bottom: 120px;
+            /* khoảng trống dưới cho form */
+            padding: 1em;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            min-height: 100px;
+        }
+        .form-group{
+            margin:1rem 0;
+        }
+        .form-group small {
+            text-align: right;
+            display: block;
+        }
+        /* Chat input form fixed at bottom */
+        #chat-form-container {
+
+            max-width: 700px;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            padding: 10px 15px;
+            display: flex;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
+            margin-top: 10px;
+        }
+
+        .chat-form {
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: #fff;
+        }
+
+        #chat-form {
+            display: flex;
+            width: 100%;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            font-size: 16px;
+            border-radius: 30px;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            background: #007bff;
+            color: white;
+            padding: 12px 18px;
+            margin-left: 10px;
+            font-size: 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+        .form-group.user-message {
+            text-align: right;
+        }
+        .user-message .inner {
+            background: #33333314;
+            display: inline-block;
+            padding: 0.5rem;
+            border-radius: 11px;
+}
+        @media (max-width: 600px) {
+            #chat-form-container {
+                left: 10px;
+                right: 10px;
+            }
+
+            input[type="text"],
+            button {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <h1>💬 Chatbot Demo</h1>
-    <form id="chat-form">
-        <label for="message">Nhập nội dung:</label>
-        <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..." required />
-        <button type="submit">Gửi</button>
-    </form>
-    <div id="result"></div>
+
+    <div id="result">Phản hồi của chatbot sẽ hiển thị tại đây.</div>
+    <div class="chat-form">
+        <div id="chat-form-container">
+            <form id="chat-form">
+                <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..."
+                    required />
+                <button type="submit">Gửi</button>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         const form = document.getElementById('chat-form');
         const resultDiv = document.getElementById('result');
+        const messageInput = document.getElementById('message');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const message = document.getElementById('message').value;
-            resultDiv.innerHTML = "⏳ Đang xử lý...";
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Hiển thị tin nhắn người dùng
+            resultDiv.insertAdjacentHTML('beforeend', `
+            <div class="form-group user-message"><div class="inner"><strong>🧑 Bạn:</strong> ${message}</div></div>
+        `);
+            messageInput.value = ''; // Xoá ô nhập
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+
+            // Hiển thị "Đang xử lý..."
+            const botReply = document.createElement('div');
+            botReply.className = 'form-group bot-reply';
+            botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ⏳ Đang xử lý...`;
+            resultDiv.appendChild(botReply);
+            resultDiv.scrollTop = resultDiv.scrollHeight;
 
             try {
                 const res = await fetch('/api/chat', {
@@ -34,12 +154,28 @@
                     body: JSON.stringify({ message })
                 });
 
-                const data = await res.json();
-                resultDiv.innerHTML = `<h3>Phản hồi:</h3><div>${data.html || data.response}</div>`;
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (jsonErr) {
+                    console.error("❌ Lỗi khi parse JSON:", jsonErr, text);
+                    botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ❌ Phản hồi không hợp lệ từ server.`;
+                    return;
+                }
+
+                botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ${data.html || data.response}`;
+                // if (data.source) {
+                //     botReply.innerHTML += `<br><small><em>Nguồn: ${data.source}</em></small>`;
+                // }
             } catch (err) {
-                resultDiv.innerHTML = "❌ Lỗi khi gửi yêu cầu.";
+                console.error("❌ Lỗi fetch:", err);
+                botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ❌ Không thể kết nối đến server.`;
             }
+            resultDiv.scrollTop = resultDiv.scrollHeight;
         });
     </script>
+
 </body>
+
 </html>

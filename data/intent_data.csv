@@ -1,0 +1,108 @@
+text,label
+Xin chào,greeting
+"Chào bạn, tôi cần giúp đỡ",greeting
+hi,greeting
+hello,greeting
+hi shop,greeting
+hi,greeting
+Chào bạn,greeting
+Chào shop,greeting
+Tôi cần tư vấn,greeting
+"Chào, bạn có thể giúp gì không?",greeting
+"Hi shop, mình có câu hỏi",greeting
+giá bao nhiêu?,price
+giá như thế nào,price
+giá in menu,price
+giá in tờ rơi,price
+giá thiết kế website,price
+giá in,price
+tôi muốn hỏi giá,price
+báo giá giúp tôi,price
+báo giá giúp tôi với,price
+báo giá giúp tôi với nhé,price
+"báo giá giúp tôi với nhé, cảm ơn",price
+giá in tờ tơi,price
+giá sửa máy tính,price
+giá đổ mực máy in,price
+giá photocopy,price
+giá in thẻ,price
+tôi muốn hỏi giá thiết kế websiteTôi muốn hỏi giá cả,price
+Chi phí in thiệp cưới bao nhiêu?,price
+Thiệp cưới giá rẻ có không?,price
+Báo giá thiệp cưới giúp tôi với,price
+Thiệp cưới bao nhiêu tiền một bộ?,price
+Giá trung bình là bao nhiêu?,price
+Thiết kế website như nào?,website
+Mẫu thiệp cưới ở đâu xem?,website
+Tôi muốn xem các mẫu thiệp cưới,website
+Có link mẫu thiệp cưới không?,website
+Cho mình xem các mẫu sẵn có,website
+Xem được mẫu trên web không?,website
+Thời gian giao hàng bao lâu?,delivery
+Thiệp cưới có thể giao trong bao lâu?,delivery
+Có giao thiệp tận nơi không?,delivery
+Thiệp in xong trong mấy ngày?,delivery
+Có nhận ship không?,delivery
+Bao lâu thì nhận được thiệp?,delivery
+Hãy liên hệ với tôi,contact
+Gọi lại cho tôi về in thiệp cưới,contact
+Liên hệ lại cho tôi vào chiều nay,contact
+Tôi muốn được tư vấn qua điện thoại,contact
+Làm sao để liên hệ đặt thiệp?,contact
+Tôi để lại số điện thoại nhé,contact
+Tôi muốn được gọi lại,contact
+số điện thoại của shop là gì?,contact
+Cho tôi số điện thoại để liên hệ,contact
+Tôi muốn để lại số điện thoại,contact
+Cho tôi số điện thoại để liên hệ,contact
+Cho tôi số điện thoại của shop,contact
+cho tôi số điện thoại của tiệm,contact
+Cho tôi số điện thoại của công ty,contact
+Địa chỉ của shop là gì?,address
+Cho tôi địa chỉ cửa hàng,address
+Tôi muốn biết địa chỉ của bạn,address
+Bạn ở đâu vậy?,address
+Địa chỉ công ty là gì?,address
+Cho tôi địa chỉ để đến xem mẫu,address
+Địa chỉ của bạn ở đâu?,address
+Số điện thoại của shop là gì?,phone
+Cho tôi số điện thoại để liên hệ,phone
+Cho tôi số điện thoại của shop,phone
+cho tôi số điện thoại của tiệm,phone
+Cho tôi số điện thoại của công ty,phone
+Email của bạn là gì?,email
+Cho tôi email để liên hệ,email
+Bạn có thể gửi thông tin qua email không?,email
+Tôi muốn gửi yêu cầu qua email,email
+Cho tôi địa chỉ email của bạn,email
+Bạn có thể gửi báo giá qua email không?,email
+Bạn ở đâu?,location
+Cửa hàng của bạn ở đâu?,location
+Tôi muốn biết vị trí cửa hàng,location
+Bạn có chi nhánh nào không?,location
+Cửa hàng có ở gần đây không?,location
+Bạn có cửa hàng ở đâu khác không?,location
+Giờ mở cửa của bạn là mấy giờ?,opening_hours
+Bạn mở cửa từ mấy giờ đến mấy giờ?,opening_hours
+Thời gian làm việc của bạn là gì?,opening_hours
+Cửa hàng có mở cửa vào cuối tuần không?,opening_hours
+Giờ đóng cửa của bạn là mấy giờ?,opening_hours
+Bạn có nhận thanh toán qua thẻ không?,payment
+Tôi có thể thanh toán bằng tiền mặt không?,payment
+Có hỗ trợ thanh toán online không?,payment
+Bạn có nhận chuyển khoản không?,payment
+Hình thức thanh toán nào được chấp nhận?,payment
+Tôi có thể trả góp không?,payment
+Tôi muốn gửi phản hồi về dịch vụ,feedback
+Bạn có nhận đánh giá từ khách hàng không?,feedback
+Tôi muốn gửi ý kiến đóng góp,feedback
+Bạn có thể cải thiện dịch vụ không?,feedback
+Tôi muốn chia sẻ trải nghiệm của mình,feedback
+Bạn có thể lắng nghe ý kiến khách hàng không?,feedback
+Bạn có làm việc vào ngày lễ không?,closed_hours
+Bạn có nhận thiết kế riêng thiệp cưới không?,other
+Tôi muốn biết thêm về dịch vụ in thiệp,other
+Có mẫu nào sang trọng không?,other
+Có cần cọc trước khi in không?,other
+In bao nhiêu cái thì được giảm giá?,other
+Tôi đang phân vân giữa các mẫu,other
