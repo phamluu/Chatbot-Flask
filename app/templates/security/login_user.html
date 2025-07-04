@@ -1,0 +1,16 @@
+{% extends "security/layout.html" %}
+{% block content %}
+  <h1>Đăng nhập</h1>
+  {{ login_user_form.hidden_tag() }}
+  <form method="POST" class="login">
+    {{ login_user_form.email.label }} {{ login_user_form.email() }}<br>
+    {{ login_user_form.password.label }} {{ login_user_form.password() }}<br>
+    {{ login_user_form.submit() }}
+  </form>
+  <p>
+    <a href="/register">Đăng ký tài khoản mới</a>
+  </p>
+  <p>
+    <a href="{{ url_for('security.forgot_password') }}">Quên mật khẩu?</a>
+  </p>
+{% endblock %}

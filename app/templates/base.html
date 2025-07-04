@@ -9,167 +9,221 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #343a40;
+            padding: 1rem 0;
+            color: white;
+        }
+        .header-title {
+            font-size: 1.8rem;
+        }
+        .logout-btn {
+            float: right;
+            margin-top: -38px;
+        }
+        .sidebar {
+            background-color: white;
+            border-right: 1px solid #ddd;
+            padding: 1rem;
+            height: 100%;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .chat-window {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fefefe;
+            margin-bottom: 10px;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .message {
+            margin-bottom: 5px;
+        }
+        .message.staff {
+            color: #007bff;
+        }
+        .message.user {
+            color: #28a745;
+        }
+    </style>
 </head>
 
 <body>
     <header>
-        <div class="container">
-            <h1>ỨNG DỤNG QUẢN LÝ CHAT</h1>
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1 class="header-title">ỨNG DỤNG QUẢN LÝ CHAT</h1>
+            <a href="/logout" class="btn btn-outline-light logout-btn">Đăng xuất</a>
         </div>
     </header>
-    <main>
-        <div class="container">
+
+    <main class="mt-3">
+        <div class="container-fluid">
             <div class="row">
+                <!-- Sidebar -->
                 <div class="col-md-3">
-                    <div class="sidebar">
+                    <div class="sidebar shadow-sm">
+                        <h5>Quản lý</h5>
                         <ul>
-                            <li><a href="/user">Danh sách người dùng</a></li>
-                            <li><a href="/faq">Quản lý câu hỏi - Trả lời</a></li>
-                            <li><a href="/chatbot-response">Quản lý Chatbox Response</a></li>
-                            <li><a href="/intent">Quản lý phân loại ý định</a></li>
-                            <li><a href="">Lịch sử chat</a></li>
+                            <li><a href="/user">➤ Danh sách người dùng</a></li>
+                            <li><a href="/intent">➤ Phân loại ý định</a></li>
+                            <li><a href="#">➤ Lịch sử chat</a></li>
                         </ul>
-    
+
+                        <hr>
                         <div id="customer-list-container">
-                            <div class="title">Danh sách khách hàng online <span class="minux">_</span></div>
-                            <ul id="customer-list">    
-                            </ul>
-                        </div>
-                        
-                        <div id="chat-windows">
-                         
+                            <h6>Khách hàng online <span class="text-muted">_</span></h6>
+                            <ul id="customer-list" class="list-group small"></ul>
                         </div>
                     </div>
                 </div>
+
+                <!-- Main content -->
                 <div class="col-md-9">
                     {% block content %}{% endblock %}
+
+                    <!-- Danh sách cửa sổ chat động -->
+                    <div id="chat-windows" class="mt-3"></div>
                 </div>
             </div>
         </div>
     </main>
-    
+
+    <!-- Scripts -->
     <script>
         const staffId = 42;
-        const socket = io({query: { user_id: staffId } });
-        // Cập nhật danh sách cuộc hội thoại có staffId tham gia
-        socket.on('update_conversations_staff', function(data){
+        const socket = io({ query: { user_id: staffId } });
+
+        socket.on('update_conversations_staff', function (data) {
             const convers = document.getElementById('chat-windows');
             convers.innerHTML = '';
-            convers.forEach(function(conver){
+            data.forEach(function (conver) {
                 const converItem = document.createElement('div');
                 converItem.id = 'chat-window-' + conver.id;
                 converItem.className = 'chat-window';
-                chatWindow.innerHTML = `
-                    <div class="title"><span>Chat với khách hàng ${converItem.user_id}</span><span class="minus"></span></div>
-                    <div class="chat-box" id="chat-box-${converItem.user_id}"></div>
+                converItem.innerHTML = `
+                    <div class="title"><span>Chat với khách hàng ${conver.user_id}</span><span class="minus"></span></div>
+                    <div class="chat-box" id="chat-box-${conver.user_id}"></div>
                     <div class="input-container">
-                        <input type="text" id="message-input-${converItem.user_id}" placeholder="Type a message...">
-                        <button onclick="sendMessage(${converItem.user_id})">Send</button>
+                        <input type="text" id="message-input-${conver.user_id}" class="form-control" placeholder="Nhập tin nhắn...">
+                        <button class="btn btn-primary" onclick="sendMessage(${conver.user_id}, ${conver.id})">Gửi</button>
                     </div>
                 `;
-                convers.appendChild();
-            })
-        })
-         // Cập nhật danh sách khách hàng
-        socket.on('update_user_list', function(user_data) {
+                convers.appendChild(converItem);
+                loadMessages(conver.id);
+            });
+        });
+
+        socket.on('update_user_list', function (user_data) {
             const userList = document.getElementById('customer-list');
-            userList.innerHTML = '';  // Xóa danh sách cũ
-            user_data.forEach(function(user, index) {
+            userList.innerHTML = '';
+            user_data.forEach(function (user, index) {
                 const userItem = document.createElement('li');
-                userItem.id = 'user-' + user.id;
-                userItem.className = 'conversation-' + user.conversation_id;
-                userItem.innerHTML = (index + 1) + '. ' + user.username + ' - ' + user.email;
-                userItem.addEventListener('click', function() {
-                    // Thêm hội thoại
+                userItem.className = 'list-group-item';
+                userItem.innerHTML = `${index + 1}. ${user.username} - ${user.email}`;
+                userItem.addEventListener('click', function () {
                     if (!user.conversation_id) {
-                            addToChat(user.id, staffId);
-                        } else {
-                            console.log('Hội thoại đã tồn tại.');
-                        }
-                    openWindow(user.id, user.conversation_id)
+                        addToChat(user.id, staffId);
+                    } else {
+                        console.log('Hội thoại đã tồn tại.');
+                        openWindow(user.id, user.conversation_id);
+                    }
                 });
                 userList.appendChild(userItem);
             });
         });
-    
-        function addToChat(user_id, staff_id){
-            debugger;
-            socket.emit('new_conversation', {
-                user_id: user_id,
-                staff_id: staff_id
-            });
-        }
-       
-        // Lắng nghe tin nhắn từ khách và hiển thị trong cửa sổ chat tương ứng
-        socket.on('new_message', function(data) {
-            console.log('Received new_message:', data);
-            
-            messageElement = document.createElement('div');
-            messageElement.className = "message " + data.message_type;
-            messageElement.innerHTML = "<b>" + data.message_type + ":</b> " + data.message;
-            const chatBox = document.getElementById('chat-box-' + data.conversation_id);
+
+        socket.on('new_message', function (data) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${data.message_type}`;
+            messageElement.innerHTML = `<b>${data.message_type}:</b> ${data.message}`;
+            const chatBox = document.getElementById(`chat-box-${data.conversation_id}`);
             chatBox.appendChild(messageElement);
-    
-            // Tự động cuộn xuống cuối
             chatBox.scrollTop = chatBox.scrollHeight;
-    
         });
-    
-        socket.on('connect', function () {
-            console.log("Đã kết nối với server qua Socket.io");
-        });
-        socket.on('disconnect', function () {
-            console.log("Mất kết nối với server");
-        });
-    
-        function loadMessages(conversation_id) {
-                fetch(`/api/messages?conversation_id=${conversation_id}`)
-                    .then(response => response.json())
-                    .then(messages => {
-                        const chatBox = document.getElementById(`chat-box-${conversation_id}`);
-                        chatBox.innerHTML = messages
-                            .map(message => `<div class="message ${message.message_type}"><b>${message.message_type}:</b> ${message.content}</div>`)
-                            .join('');
-                    })
-                    .catch(error => {
-                        console.error('Error loading messages:', error);
-                    });
-            }
-        // Gửi tin nhắn từ nhân viên
+
         function sendMessage(userId, conversation_id) {
-            debugger;
-            const message = document.getElementById('message-input-' + userId).value;
+            const messageInput = document.getElementById('message-input-' + userId);
+            const message = messageInput.value.trim();
             if (message) {
                 socket.emit('new_message', {
-                    message: message,
-                    conversation_id: conversation_id,
+                    message,
+                    conversation_id,
                     sender_id: userId,
                     message_type: 'staff'
                 });
-                document.getElementById('message-input-' + userId).value = '';  // Xóa input sau khi gửi
+                messageInput.value = '';
             }
         }
-    
-        function openWindow(user_id, conversation_id){
-            const converList = document.getElementById('chat-windows');
-            const converItem = `<div class="chat-window"><div class="title">
-                                    <span>Chat với khách hàng ${user_id}</span>
-                                    <div class="action">
-                                        <span class="minus" onclick="toggleChatWindow(${user_id})"></span>
-                                        <span class="close" onclick="closeChatWindow()">X</span>
-                                    </div>
-                                </div>
-                                <div class="chat-box" id="chat-box-${conversation_id}"></div>
-                                <div class="input-container">
-                                    <input type="text" id="message-input-${user_id}" placeholder="Type a message...">
-                                    <button onclick="sendMessage(${user_id}, ${conversation_id})">Send</button>
-                                </div></div>`;
-           converList.innerHTML = converItem
-           loadMessages(conversation_id);
+
+        function addToChat(user_id, staff_id) {
+            socket.emit('new_conversation', {
+                user_id,
+                staff_id
+            });
         }
-        window.onload = function() {
+
+        function openWindow(user_id, conversation_id) {
+            const converList = document.getElementById('chat-windows');
+            const converItem = `
+                <div class="chat-window">
+                    <div class="title d-flex justify-content-between align-items-center">
+                        <span>Chat với khách hàng ${user_id}</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="toggleChatWindow(${user_id})">_</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="closeChatWindow()">X</button>
+                        </div>
+                    </div>
+                    <div class="chat-box" id="chat-box-${conversation_id}"></div>
+                    <div class="input-container">
+                        <input type="text" id="message-input-${user_id}" class="form-control" placeholder="Nhập tin nhắn...">
+                        <button class="btn btn-primary" onclick="sendMessage(${user_id}, ${conversation_id})">Gửi</button>
+                    </div>
+                </div>`;
+            converList.innerHTML = converItem;
+            loadMessages(conversation_id);
+        }
+
+        function loadMessages(conversation_id) {
+            fetch(`/api/messages?conversation_id=${conversation_id}`)
+                .then(response => response.json())
+                .then(messages => {
+                    const chatBox = document.getElementById(`chat-box-${conversation_id}`);
+                    chatBox.innerHTML = messages
+                        .map(msg => `<div class="message ${msg.message_type}"><b>${msg.message_type}:</b> ${msg.content}</div>`)
+                        .join('');
+                })
+                .catch(err => console.error('Lỗi tải tin nhắn:', err));
+        }
+
+        window.onload = function () {
             socket.emit('get_users');
         };
     </script>
 </body>
+
 </html>

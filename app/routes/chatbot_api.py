@@ -1,3 +1,4 @@
+from flask_security import roles_required, login_required
 from flask import Blueprint, request, jsonify, render_template
 from app.services.chatbot_service import process_message
 from app.services.intent_service import (
@@ -15,37 +16,49 @@ chatbot_api = Blueprint('chatbot_api', __name__) #endpoint: chatbot_api
 
 # intent management routes
 @chatbot_api.route("/intent", methods=['GET', 'POST'])
+@roles_required('admin')
 def manage_intent():
     return handle_manage_intent(request)
 @chatbot_api.route('/intent/update/<int:id>', methods=['POST'])
+@roles_required('admin')
 def update_intent(id):
     return handle_update_intent(id, request)
 @chatbot_api.route('/intent/delete/<int:id>', methods=['POST'])
+@roles_required('admin')
 def delete_intent(id):
     return handle_delete_intent(id)
 #end
 
 # intent input management routes
 @chatbot_api.route("/intent_input/<int:intent_id>", methods=['GET', 'POST'])
+@roles_required('admin')
 def manage_intent_input(intent_id):
     return handle_manage_intent_input(request, intent_id)
+
 @chatbot_api.route('/intent_input/update/<int:id>', methods=['POST'])
+@roles_required('admin')
 def update_intent_input(id):
     return handle_update_intent_input(id, request)
+
 @chatbot_api.route('/intent_input/delete/<int:id>', methods=['POST'])
+@roles_required('admin')
 def delete_intent_input(id):
     return handle_delete_intent(id)
 #end
 
 # intent response management routes
 @chatbot_api.route("/intent_response/<int:intent_id>", methods=["GET", "POST"])
+@roles_required('admin')
 def manage_intent_responses(intent_id):
     return handle_manage_intent_response(request, intent_id)
 
 @chatbot_api.route('/intent_response/update/<int:id>', methods=['POST'])
+@roles_required('admin')
 def update_intent_responses(id):
     return handle_update_intent_response(id, request)
+    
 @chatbot_api.route('/intent_response/delete/<int:id>', methods=['POST'])
+@roles_required('admin')
 def delete_intent_responses(id):
     return handle_delete_intent_response(id)
 #end

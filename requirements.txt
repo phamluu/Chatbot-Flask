@@ -14,3 +14,5 @@ protobuf
 pandas
 flask-migrate
 alembic
+flask-security-too
+bcrypt>=4.0.1

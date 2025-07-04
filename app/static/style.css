@@ -213,3 +213,70 @@ header {
 main {
     padding: 25px 0;
 }
+
+/* Thẻ ngoài chứa form */
+.wrapper {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    transition: all 0.3s ease-in-out;
+    margin: 0 auto;
+}
+
+/* Tiêu đề */
+.wrapper h1 {
+    text-align: center;
+    color: #333;
+    font-size: 26px;
+    margin-bottom: 30px;
+}
+
+/* Form */
+form.login {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Label */
+form.login label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+/* Input fields */
+form.login input[type="text"],
+form.login input[type="password"],
+form.login input[type="email"] {
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: border-color 0.3s;
+}
+
+form.login input:focus {
+    border-color: #7f5af0;
+    outline: none;
+}
+
+/* Submit button */
+form.login input[type="submit"] {
+    background-color: #7f5af0;
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form.login input[type="submit"]:hover {
+    background-color: #5c3dcb;
+}

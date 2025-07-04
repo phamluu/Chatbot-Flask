@@ -1,4 +1,6 @@
 #train_intent.py
+from app import db
+from app.models import Intent, IntentInput, IntentResponse
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Chạy CPU
 
@@ -16,19 +18,23 @@ from sqlalchemy import create_engine
 # ⚙️ Cấu hình
 MODEL_DIR = "./models/vibert4news"
 SAVE_PATH = "./models/vibert4news_finetuned"
-DB_URI = "mysql+pymysql://root:@localhost/chatbot"  # ⚠️ Sửa cho đúng
+#DB_URI = "mysql+pymysql://root:@localhost/chatbot"  # ⚠️ Sửa cho đúng
 
 # ✅ Load dữ liệu từ database
-engine = create_engine(DB_URI)
+engine = create_engine(db.engine.url)
 
 # Truy vấn dữ liệu JOIN giữa inputs và intent
-query = """
-SELECT i.utterance, t.intent_code 
-FROM intent_inputs i 
-JOIN intents t ON i.intent_id = t.id
-"""
-df = pd.read_sql(query, engine)
+# query = """
+# SELECT i.utterance, t.intent_code 
+# FROM intent_inputs i 
+# JOIN intents t ON i.intent_id = t.id
+# """
 
+query = IntentInput.query.join(Intent).with_entities(
+    IntentInput.utterance, Intent.intent_code
+).statement
+
+df = pd.read_sql(query, engine)
 texts = df["utterance"].tolist()
 labels = df["intent_code"].tolist()
 

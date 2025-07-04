@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from app.models import Faq, ChatbotResponse, Message
+from app.models import  Message
 from app.services.chat_service import get_messages_by_conversation_id
 import random
 
@@ -13,14 +13,6 @@ def chat():
 def chat_post():
     user_input = request.json.get("message", "").lower()
 
-    # FAQ logic
-    faq = Faq.query.filter(Faq.question.ilike(f"%{user_input}%")).first()
-    if faq:
-        return jsonify({"response": faq.answer})
-
-    responses = ChatbotResponse.query.filter(ChatbotResponse.keyword.ilike(f"%{user_input}%")).all()
-    if responses:
-        return jsonify({"response": random.choice(responses).response})
 
     return jsonify({"response": "Xin lỗi, tôi chưa hiểu câu hỏi của bạn."})
 
