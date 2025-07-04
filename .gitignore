@@ -6,3 +6,5 @@ __pycache__/
 *.pyd
 *.zip
 instance/
+models/vibert4news_finetuned/
+models/vibert4news_finetuned/*
