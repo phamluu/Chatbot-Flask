@@ -1,8 +1,7 @@
 from app import db  
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from flask_security import Security, SQLAlchemyUserDatastore, \
-     UserMixin, RoleMixin
+from flask_security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin
 # Vai trò người dùng (admin, user, editor,...)
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)

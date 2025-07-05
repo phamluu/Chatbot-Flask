@@ -21,7 +21,7 @@ def fetch_data_from_web(keywords):
         response = requests.post(WEB_API_URL, json={"keywords": keywords}, timeout=10)
         return response.text if response.status_code == 200 else ""
     except Exception as e:
-        print(f"❌ Web API lỗi: {e}")
+        #print(f"❌ Web API lỗi: {e}")
         return ""
 
 def generate_online_response(prompt):
@@ -33,7 +33,7 @@ def generate_online_response(prompt):
         response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=10)
         return response.json()["choices"][0]["message"]["content"] if response.status_code == 200 else None
     except Exception as e:
-        print(f"❌ OpenRouter lỗi: {e}")
+        #print(f"❌ OpenRouter lỗi: {e}")
         return None
 
 def process_message(message):

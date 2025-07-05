@@ -1,41 +1,35 @@
+import traceback
 from flask import Flask, render_template
 from app.config import Config  # 🔁 Import Config chuẩn
 from app.extensions import db, migrate, socketio, security, mail  # ✅ Đã được tách ra đúng cách
 from flask_security import SQLAlchemyUserDatastore
 from app.models import User, Role
 
-# from version1 import app
-
-# #from version1 import app
-# from .config import Config
-
-# db = SQLAlchemy()
-# migrate = Migrate() 
-# socketio = SocketIO()
-
-# # Thiết lập Flask-Security
-# user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-# security = Security()  # đừng truyền app ở đây
-
-def create_app():
+def create_app(use_socketio=False):
     app = Flask(__name__)
     app.config.from_object(Config)
 
     # Khởi tạo extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    socketio.init_app(app)
     mail.init_app(app)  # Khởi tạo Flask-Mail
 
     # Flask-Security
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security.init_app(app, user_datastore, register_blueprint=True)
 
-    # Đăng ký các blueprint
-    # Đăng ký API bảo mật
-    # from app.routes.security import security_bp as security_bp_blueprint
-    # app.register_blueprint(security_bp_blueprint)
-    #end
+    from flask_wtf import CSRFProtect
+    csrf = CSRFProtect()
+    csrf.init_app(app)
+
+    # ONLY INIT socketio WHEN NOT USING WSGI (dev mode)
+    if use_socketio:
+        socketio.init_app(app)
+
+    # đăng ký dashboard blueprint
+    from app.routes.dashboard import dashboard_bp as dashboard
+    app.register_blueprint(dashboard)
+    # end
 
     # Đăng ký API nhân viên
     from app.routes.staff import staff_bp as staff
@@ -57,6 +51,12 @@ def create_app():
     def forbidden_error(error):
         return render_template('403.html'), 403
 
+    @app.errorhandler(500)
+    def internal_error(error):
+        return f"""
+        <h1>500 Internal Server Error</h1>
+        <pre>{traceback.format_exc()}</pre>
+        """, 500
     return app
 
    

@@ -2,7 +2,6 @@ import pickle
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from langdetect import detect
-from pyvi import ViTokenizer
 import os
 from app import db
 from app.models import Intent, IntentResponse
@@ -49,9 +48,11 @@ def detect_language(text):
 def extract_keywords(text):
     lang = detect_language(text)
     if lang == "vi":
+        from pyvi import ViTokenizer  # ✅ Trì hoãn import
         tokens = ViTokenizer.tokenize(text).split()
         return list(set([w for w in tokens if len(w) > 2]))
     return []
+
 
 # ✅ Dự đoán intent từ văn bản
 def predict_intent(text):

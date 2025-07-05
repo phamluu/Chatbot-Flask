@@ -25,9 +25,10 @@ def update_user(id):
 def delete_user(id):
     return handle_delete_user(id)
 
-@user_bp.route('/')
+@user_bp.route('/chat-user')
 def index():
-    return handle_index()
+    return "Hello World"
+    #return handle_index()
 
 @user_bp.route('/chat_post', methods=['POST'])
 def chat_post():

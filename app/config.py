@@ -21,7 +21,7 @@ class Config:
     #end
 
 
-    SECURITY_POST_LOGIN_VIEW = '/intent'         # Hoặc trang sau đăng nhập
+    SECURITY_POST_LOGIN_VIEW = '/dashboard'         # Hoặc trang sau đăng nhập
     SECURITY_POST_LOGOUT_VIEW = '/login'            # Sau khi logout
     SECURITY_POST_REGISTER_VIEW = '/login'          # Sau khi đăng ký
 
@@ -36,3 +36,5 @@ class Config:
     # Dùng template tùy chỉnh
     SECURITY_LOGIN_USER_TEMPLATE = 'security/login_user.html'
     SECURITY_REGISTER_USER_TEMPLATE = 'security/register_user.html'
+
+    SECURITY_DEBUG = True

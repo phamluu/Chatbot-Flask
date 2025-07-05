@@ -23,7 +23,6 @@
         }
         .logout-btn {
             float: right;
-            margin-top: -38px;
         }
         .sidebar {
             background-color: white;
@@ -86,6 +85,7 @@
             <div class="row">
                 <!-- Sidebar -->
                 <div class="col-md-3">
+                    {% if current_user.has_role('admin') %}
                     <div class="sidebar shadow-sm">
                         <h5>Quản lý</h5>
                         <ul>
@@ -100,6 +100,7 @@
                             <ul id="customer-list" class="list-group small"></ul>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
 
                 <!-- Main content -->
