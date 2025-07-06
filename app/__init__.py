@@ -1,12 +1,16 @@
 import traceback
 from flask import Flask, render_template
 from app.config import Config  # 🔁 Import Config chuẩn
-from app.extensions import db, migrate, socketio, security, mail  # ✅ Đã được tách ra đúng cách
+from app.extensions import db, migrate, socketio, security, mail, csrf  # ✅ Đã được tách ra đúng cách
 from flask_security import SQLAlchemyUserDatastore
 from app.models import User, Role
+from app.utils.language_utils import load_model
 
 def create_app(use_socketio=False):
     app = Flask(__name__)
+    app.debug = True
+
+    csrf.init_app(app)
     app.config.from_object(Config)
 
     # Khởi tạo extensions
@@ -17,10 +21,6 @@ def create_app(use_socketio=False):
     # Flask-Security
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security.init_app(app, user_datastore, register_blueprint=True)
-
-    from flask_wtf import CSRFProtect
-    csrf = CSRFProtect()
-    csrf.init_app(app)
 
     # ONLY INIT socketio WHEN NOT USING WSGI (dev mode)
     if use_socketio:
@@ -43,6 +43,11 @@ def create_app(use_socketio=False):
     from app.routes.chatbot_api import chatbot_api
     app.register_blueprint(chatbot_api)
     
+    # Đăng ký các route liên quan đến intent
+    from app.routes.intent import intent_bp as intent
+    app.register_blueprint(intent)
+    # end
+
     from app.routes.chat_routes import chat_bp as chat
     app.register_blueprint(chat)
 

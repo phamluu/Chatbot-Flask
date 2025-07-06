@@ -27,7 +27,7 @@
 <div class="card mb-4">
   <div class="card-header">Thêm câu hỏi</div>
   <div class="card-body">
-    <form method="POST" action="/intent_response" class="form-intent">
+    <form method="POST" action="/intent_response/{{ intent_id }}" class="form-intent">
       <div class="mb-3">
         <label for="response_text" class="form-label">Câu trả lời</label>
         <input class="form-control" id="response_text" name="response_text" required placeholder="Nhập câu trả lời" />

@@ -9,6 +9,10 @@ class Config:
     
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     # Bật các chức năng mặc định
+    WTF_CSRF_CHECK_DEFAULT = False
+    WTF_CSRF_ENABLED = True
+    SECURITY_CSRF_PROTECT_MECHANISMS = ['session']
+
     # Quên mật khẩu
     SECURITY_RECOVERABLE = True
     SECURITY_FORGOT_PASSWORD_TEMPLATE = 'security/forgot_password.html'

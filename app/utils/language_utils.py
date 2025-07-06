@@ -1,79 +1,99 @@
+from functools import lru_cache
 import pickle
+from flask import current_app
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from langdetect import detect
 import os
-from app import db
 from app.models import Intent, IntentResponse
 
-# ✅ Thiết lập thiết bị
+torch.set_num_threads(1)
+# Thiết bị sử dụng
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ✅ Biến toàn cục nhưng chưa khởi tạo model/tokenizer
+# Biến toàn cục cho model
 MODEL_NAME = "./models/vibert4news_finetuned"
 model = None
 tokenizer = None
 label_encoder = None
 
+
 def load_model():
-    """Tải model, tokenizer, và label encoder nếu chưa load."""
+    """Chỉ tải mô hình 1 lần duy nhất khi app khởi tạo"""
     global model, tokenizer, label_encoder
 
-    if model is None or tokenizer is None or label_encoder is None:
-        # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    if model is not None and tokenizer is not None and label_encoder is not None:
+        return  # ✅ Đã load rồi thì bỏ qua
 
-        # Load label encoder
-        with open(os.path.join(MODEL_NAME, "label_encoder.pkl"), "rb") as f:
-            label_encoder = pickle.load(f)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-        # Load model
-        num_labels = len(label_encoder.classes_)
-        model_instance = AutoModelForSequenceClassification.from_pretrained(
-            MODEL_NAME,
-            num_labels=num_labels,
-            ignore_mismatched_sizes=True
-        ).to(device)
+    with open(os.path.join(MODEL_NAME, "label_encoder.pkl"), "rb") as f:
+        label_encoder = pickle.load(f)
 
-        model = model_instance
+    num_labels = len(label_encoder.classes_)
+    model_instance = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_NAME,
+        num_labels=num_labels,
+        ignore_mismatched_sizes=True
+    ).to(device)
 
-# ✅ Phát hiện ngôn ngữ
+    model = model_instance
+
+
 def detect_language(text):
     try:
         return detect(text)
     except:
         return "unknown"
 
-# ✅ Tách từ khóa tiếng Việt
+
 def extract_keywords(text):
     lang = detect_language(text)
     if lang == "vi":
-        from pyvi import ViTokenizer  # ✅ Trì hoãn import
+        from pyvi import ViTokenizer
         tokens = ViTokenizer.tokenize(text).split()
         return list(set([w for w in tokens if len(w) > 2]))
     return []
 
 
-# ✅ Dự đoán intent từ văn bản
-def predict_intent(text):
-    load_model()  # ✅ Đảm bảo model/tokenizer/encoder được load
+def _predict_intent(text):
+    global model, tokenizer, label_encoder
+    if model is None or tokenizer is None or label_encoder is None:
+        print("🔁 Model chưa load — gọi lại load_model trong _predict_intent")
+        load_model()
+
     inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True).to(device)
     with torch.no_grad():
         logits = model(**inputs).logits
         predicted_class = logits.argmax(dim=1).item()
     return label_encoder.inverse_transform([predicted_class])[0]
 
-# ✅ Sinh phản hồi từ intent
+@lru_cache(maxsize=512)
+def predict_intent_cached(text: str) -> str:
+    global model, tokenizer, label_encoder
+    if model is None or tokenizer is None or label_encoder is None:
+        print("🔁 Model chưa load — thực hiện load_model()...")
+        load_model()
+    return _predict_intent(text)
+
+
+
 conversation_history = []
 
-def generate_local_response(message):
-    intent = predict_intent(message)  # Dự đoán intent
-    #response = f"📌 Ý định của bạn là: **{intent}**.\n"
-    response = f""
-    intent_reply_map = {
-        intent_response.intent.intent_code: intent_response.response_text
-        for intent_response in IntentResponse.query.join(Intent).all()
-    }
+def generate_local_response(message: str) -> str:
+    from app import db  # ✅ Đặt trong hàm để không gây lỗi khi import sớm
+
+    intent = predict_intent_cached(message)
+
+    with current_app.app_context():
+        try:
+            intent_reply_map = {
+                ir.intent.intent_code: ir.response_text
+                for ir in IntentResponse.query.join(Intent).all()
+            }
+        except Exception as e:
+            return "🚫 Không thể truy xuất dữ liệu phản hồi. Vui lòng kiểm tra cơ sở dữ liệu."
+
     if not intent_reply_map:
         return "🚫 Không có dữ liệu phản hồi. Vui lòng kiểm tra cơ sở dữ liệu intents/intent_responses."
 
@@ -81,16 +101,6 @@ def generate_local_response(message):
         intent,
         "Xin lỗi, tôi chưa hiểu yêu cầu của bạn. Bạn có thể nói rõ hơn không?"
     )
-    # intent_reply_map = {
-    #     "greeting": "Xin chào bạn! Tôi có thể giúp gì hôm nay?",
-    #     "website": "Bạn đang quan tâm đến thiết kế website đúng không?",
-    #     "price": "Bạn muốn hỏi về giá cả phải không?",
-    #     "delivery": "Bạn đang hỏi về giao hàng?",
-    #     "contact": "Bạn muốn được liên hệ lại chứ?",
-    #     "other": "Tôi chưa rõ yêu cầu của bạn. Bạn có thể nói rõ hơn không?"
-    # }
 
     conversation_history.append((message, intent))
-    response += reply_text
-
-    return response
+    return reply_text
