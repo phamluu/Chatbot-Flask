@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,14 +28,18 @@
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
             min-height: 100px;
+            overflow-y: auto;
         }
-        .form-group{
-            margin:1rem 0;
+
+        .form-group {
+            margin: 1rem 0;
         }
+
         .form-group small {
             text-align: right;
             display: block;
         }
+
         /* Chat input form fixed at bottom */
         #chat-form-container {
             width: 700px;
@@ -88,15 +93,18 @@
         button:hover {
             background: #0056b3;
         }
+
         .form-group.user-message {
             text-align: right;
         }
+
         .user-message .inner {
             background: #33333314;
             display: inline-block;
             padding: 0.5rem;
             border-radius: 11px;
-}
+        }
+
         @media (max-width: 600px) {
             #chat-form-container {
                 left: 10px;
@@ -112,17 +120,17 @@
 </head>
 
 <body>
-   
+
     <div id="result"></div>
     <div class="chat-form">
         <div class="container">
             <div id="chat-form-container">
-            <form id="chat-form">
-                <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..."
-                    required />
-                <button type="submit">Gửi</button>
-            </form>
-        </div>
+                <form id="chat-form">
+                    <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..."
+                        required />
+                    <button type="submit">Gửi</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -139,17 +147,16 @@
 
             // Hiển thị tin nhắn người dùng
             resultDiv.insertAdjacentHTML('beforeend', `
-            <div class="form-group user-message"><div class="inner"><strong>🧑 Bạn:</strong> ${message}</div></div>
-        `);
+        <div class="form-group user-message"><div class="inner"><strong>🧑 Bạn:</strong> ${message}</div></div>
+    `);
             messageInput.value = ''; // Xoá ô nhập
-            resultDiv.scrollTop = resultDiv.scrollHeight;
 
-            // Hiển thị "Đang xử lý..."
+            // Tạo thẻ bot reply trước
             const botReply = document.createElement('div');
             botReply.className = 'form-group bot-reply';
             botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ⏳ Đang xử lý...`;
             resultDiv.appendChild(botReply);
-            resultDiv.scrollTop = resultDiv.scrollHeight;
+            botReply.scrollIntoView({ behavior: 'smooth' });
 
             try {
                 const res = await fetch('/api/chat', {
@@ -165,19 +172,20 @@
                 } catch (jsonErr) {
                     console.error("❌ Lỗi khi parse JSON:", jsonErr, text);
                     botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ❌ Phản hồi không hợp lệ từ server.`;
+                    botReply.scrollIntoView({ behavior: 'smooth' });
                     return;
                 }
 
                 botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ${data.html || data.response}`;
-                // if (data.source) {
-                //     botReply.innerHTML += `<br><small><em>Nguồn: ${data.source}</em></small>`;
-                // }
+                botReply.scrollIntoView({ behavior: 'smooth' });
+
             } catch (err) {
                 console.error("❌ Lỗi fetch:", err);
                 botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ❌ Không thể kết nối đến server.`;
+                botReply.scrollIntoView({ behavior: 'smooth' });
             }
-            resultDiv.scrollTop = resultDiv.scrollHeight;
         });
+
     </script>
 
 </body>

@@ -4,7 +4,7 @@ from app.config import Config  # 🔁 Import Config chuẩn
 from app.extensions import db, migrate, socketio, security, mail, csrf  # ✅ Đã được tách ra đúng cách
 from flask_security import SQLAlchemyUserDatastore
 from app.models import User, Role
-from app.utils.language_utils import load_model
+
 
 def create_app(use_socketio=False):
     app = Flask(__name__)

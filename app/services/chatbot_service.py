@@ -2,7 +2,7 @@ import os
 import requests
 import markdown2
 from dotenv import load_dotenv
-from app.utils.language_utils import extract_keywords, generate_local_response
+from app.utils.language_utils import  generate_local_response
 
 load_dotenv()
 

@@ -41,8 +41,14 @@
         <input class="form-control" id="description" name="description" rows="3">
       </div>
       <button type="submit" class="btn btn-primary">Thêm</button>
+      
     </form>
   </div>
+</div>
+<div class="mb-4">
+  <!-- Nút không dùng form -->
+<button id="train-button" data-estimated="{{ estimated_time | default(7.0) | round(2) }}" class="btn btn-secondary">🔁 Huấn luyện ý định</button>
+
 </div>
 
 <table class="table table-bordered">
@@ -84,4 +90,67 @@
     {% endfor %}
   </tbody>
 </table>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" style="display:none;">
+  <div class="overlay-background" style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;"></div>
+  <div class="overlay-content" style="
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    color: white;
+    text-align: center;">
+    <div class="spinner-border text-light" role="status"></div>
+    <p class="mt-3" id="estimated-time-text">⏳ Đang huấn luyện mô hình...<br><small>Ước tính: 7 giây</small></p>
+  </div>
+</div>
+
+
+<script>
+document.getElementById("train-button").addEventListener("click", async function() {
+    // Ước tính thời gian giả lập
+    const button = document.getElementById("train-button");
+    const estimatedSeconds = parseFloat(button.dataset.estimated) || 7;
+
+    const overlay = document.getElementById("loading-overlay");
+    const text = document.getElementById("estimated-time-text");
+
+    text.innerHTML = `⏳ Đang huấn luyện mô hình...<br><small>Ước tính: ${estimatedSeconds} giây</small>`;
+    overlay.style.display = 'block';
+
+    try {
+        const response = await fetch("/intent/train", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token() }}",  // Nếu bạn dùng CSRF protection
+            }
+        });
+
+        const data = await response.json();
+        overlay.style.display = 'none';
+
+        // Hiển thị kết quả bằng alert hoặc toast
+        if (data.success) {
+            alert(`${data.message} (Thời gian thực tế: ${data.actual_time} giây)`);
+            location.reload();  // reload lại để cập nhật dữ liệu mới
+        } else {
+            alert(data.message);
+        }
+
+    } catch (error) {
+        overlay.style.display = 'none';
+        alert("❌ Lỗi kết nối đến server.");
+        console.error(error);
+    }
+});
+</script>
+
+
 {% endblock %}

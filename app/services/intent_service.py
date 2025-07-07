@@ -1,4 +1,6 @@
 from datetime import datetime
+import json
+import os
 from flask import render_template, redirect, url_for, flash
 from app import db
 from app.models import Intent, IntentInput, IntentResponse
@@ -19,7 +21,15 @@ def handle_manage_intent(request):
         return redirect(url_for('intent.manage_intent'))
 
     intents = Intent.query.all()
-    return render_template('intent.html', intents=intents)
+     # Đọc thời gian ước tính từ logs
+    log_path = "logs/train_logs.json"
+    estimated_time = 7.0  # mặc định
+    if os.path.exists(log_path):
+        with open(log_path) as f:
+            logs = json.load(f)
+            if logs:
+                estimated_time = round(logs[-1]["duration"], 2)
+    return render_template('intent.html', intents=intents, estimated_time=estimated_time)
 
 def handle_update_intent(id, request):
     intent = Intent.query.get_or_404(id)
