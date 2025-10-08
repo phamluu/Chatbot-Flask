@@ -3,6 +3,7 @@ from app.models import  Message
 from app.services.chat_service import get_messages_by_conversation_id
 import random
 
+# Bỏ tạm
 chat_bp = Blueprint('chat', __name__)
 
 @chat_bp.route('/chat')

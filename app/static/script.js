@@ -16,4 +16,3 @@ function toggleChatWindow(conversationId) {
     const chatWindow = document.getElementById(`chat-window-${conversationId}`);
     chatWindow.classList.toggle('collapsed'); // Thêm hoặc xóa class 'collapsed'
 }
-

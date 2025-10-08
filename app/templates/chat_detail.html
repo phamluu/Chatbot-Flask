@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    #result {
+        margin-bottom: 120px;
+        padding: 1em;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        min-height: 100px;
+        overflow-y: auto;
+    }
+
+    .form-group { margin: 1rem 0; }
+
+    .form-group small { text-align: right; display: block; }
+
+    #chat-form-container {
+        width: 700px;
+        max-width: 100%;
+        margin: auto;
+        background: #ffffff;
+        border: 1px solid #ddd;
+        border-radius: 30px;
+        padding: 10px 15px;
+        display: flex;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 50px;
+        margin-top: 10px;
+    }
+
+    .chat-form {
+        width: 100%;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background-color: #fff;
+    }
+
+    #chat-form {
+        display: flex;
+        width: 100%;
+        align-items: center;
+    }
+
+    input[type="text"] {
+        flex: 1;
+        border: none;
+        padding: 12px 16px;
+        font-size: 16px;
+        border-radius: 30px;
+        outline: none;
+    }
+
+    button {
+        border: none;
+        background: #007bff;
+        color: white;
+        padding: 12px 18px;
+        margin-left: 10px;
+        font-size: 16px;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    button:hover { background: #0056b3; }
+
+    .form-group.admin-message, .form-group.bot-message {
+        text-align: right;
+    }
+
+    .user-message .inner {
+        background: #33333314;
+        display: inline-block;
+        padding: 0.5rem;
+        border-radius: 11px;
+    }
+
+    /* Thanh trạng thái Admin */
+    .admin-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 10px 20px;
+        margin: 15px auto;
+        width: 90%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-indicator {
+        font-weight: bold;
+        color: #dc3545;
+    }
+
+    .status-indicator.active {
+        color: #28a745;
+    }
+
+    .btn-toggle {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        color: white;
+        font-weight: bold;
+    }
+
+    .btn-start { background-color: #28a745; }
+    .btn-start:hover { background-color: #218838; }
+    .btn-stop { background-color: #dc3545; }
+    .btn-stop:hover { background-color: #c82333; }
+
+</style>
+
+<!-- 🔹 Thanh trạng thái Admin -->
+<div class="admin-status-bar">
+    <div>Trạng thái: <span id="admin-status" class="status-indicator">🔴 Ngoại tuyến</span></div>
+    <div>
+        <button id="btn-start" class="btn-toggle btn-start">Bắt đầu tham gia</button>
+        <button id="btn-stop" class="btn-toggle btn-stop" style="display:none;">Kết thúc</button>
+    </div>
+</div>
+
+<div id="result">
+    {% for msg in messages %}
+        <div class="form-group {{ msg.message_type }}-message">
+            <div class="inner">
+                <b>{{ msg.message_type }}:</b> {{ msg.content }} <br>
+                <small>{{ msg.sent_at }}</small>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="chat-form">
+    <div class="container">
+        <div id="chat-form-container">
+            <form id="chat-form">
+                <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..." required />
+                <button type="submit">Gửi</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const conversationId = "{{ conversation.id }}"; 
+const form = document.getElementById('chat-form');
+const resultDiv = document.getElementById('result');
+const messageInput = document.getElementById('message');
+const statusEl = document.getElementById('admin-status');
+const btnStart = document.getElementById('btn-start');
+const btnStop = document.getElementById('btn-stop');
+
+let adminActive = false;
+
+// 🔘 Toggle trạng thái admin
+btnStart.addEventListener('click', async (e) => {
+    adminActive = true;
+    statusEl.textContent = "🟢 Đang tham gia";
+    statusEl.classList.add("active");
+    btnStart.style.display = "none";
+    btnStop.style.display = "inline-block";
+    console.log("✅ Admin đã tham gia.");
+    const message = "Admin đã tham gia cuộc trò chuyện.";
+    try {
+        const res = await fetch(`/chat/${conversationId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        console.log("📩 Gửi thành công:", data);
+    } catch (err) {
+        console.error("❌ Lỗi fetch:", err);
+    }
+});
+
+btnStop.addEventListener('click', async (e) => {
+    adminActive = false;
+    statusEl.textContent = "🔴 Ngoại tuyến";
+    statusEl.classList.remove("active");
+    btnStart.style.display = "inline-block";
+    btnStop.style.display = "none";
+    console.log("🛑 Admin đã kết thúc.");
+    const message = "Admin đã kết thúc cuộc trò chuyện.";
+    try {
+        const res = await fetch(`/chat/${conversationId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        console.log("📩 Gửi thành công:", data);
+    } catch (err) {
+        console.error("❌ Lỗi fetch:", err);
+    }
+});
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    // Hiển thị tin nhắn admin
+    resultDiv.insertAdjacentHTML('beforeend', `
+        <div class="form-group admin-message"><div class="inner"><strong>🧑 Admin:</strong> ${message}</div></div>
+    `);
+    messageInput.value = '';
+
+    try {
+        const res = await fetch(`/chat/${conversationId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        console.log("📩 Gửi thành công:", data);
+    } catch (err) {
+        console.error("❌ Lỗi fetch:", err);
+    }
+});
+</script>
+
+<!-- SocketIO -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+socket.on('connect', () => {
+    console.log('✅ Admin connected to SocketIO');
+});
+
+socket.on('new_message', (data) => {
+    if (data.conversation_id != "{{ conversation.id }}") return;
+
+    if (data.sender === 'user') {
+        resultDiv.insertAdjacentHTML('beforeend', `
+            <div class="form-group user-message">
+                <div class="inner"><strong>🧑 Khách:</strong> ${data.message}</div>
+            </div>
+        `);
+        resultDiv.scrollTop = resultDiv.scrollHeight;
+    }
+});
+</script>
+
+{% endblock %}

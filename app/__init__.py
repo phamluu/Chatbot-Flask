@@ -1,9 +1,9 @@
 import traceback
-from flask import Flask, render_template
+from flask import Flask, current_app, render_template
 from app.config import Config  # 🔁 Import Config chuẩn
 from app.extensions import db, migrate, socketio, security, mail, csrf  # ✅ Đã được tách ra đúng cách
 from flask_security import SQLAlchemyUserDatastore
-from app.models import User, Role
+from app.models import Conversation, User, Role
 
 
 def create_app(use_socketio=False):
@@ -62,6 +62,26 @@ def create_app(use_socketio=False):
         <h1>500 Internal Server Error</h1>
         <pre>{traceback.format_exc()}</pre>
         """, 500
+    
+    @app.context_processor
+    def inject_conversations():
+        try:
+            conversations = (
+                db.session.query(Conversation)
+                .all()
+            )
+            return dict(
+                sidebar_conversations=[
+                    {
+                        "id": c.id,
+                        "user_id": c.user_id,
+                        "status": c.status,
+                    }
+                    for c in conversations
+                ]
+            )
+        except Exception as e:
+            current_app.logger.error(f"Lỗi khi inject_conversations: {e}")
+            return dict(sidebar_conversations=[])   
     return app
 
-   

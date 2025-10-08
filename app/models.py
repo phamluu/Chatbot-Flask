@@ -40,8 +40,8 @@ class Message(db.Model):
     __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
     conversation_id = db.Column(db.Integer, nullable=True)
-    sender_id = db.Column(db.Integer, nullable=True)
-    message = db.Column(db.Text, nullable=True)
+    sender_id = db.Column(db.Text, nullable=True)
+    message = db.Column(db.String(64), nullable=True)
     message_type = db.Column(db.String(50), nullable=True)
     sent_at = db.Column(db.TIMESTAMP, nullable=True)
     

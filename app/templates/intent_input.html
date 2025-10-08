@@ -27,7 +27,7 @@
 <div class="card mb-4">
   <div class="card-header">Thêm câu hỏi</div>
   <div class="card-body">
-    <form method="POST" action="/intent_input" class="form-intent">
+    <form method="POST" action="/intent_input/{{ intent_id }}" class="form-intent">
       <div class="mb-3">
         <label for="utterance" class="form-label">Câu hỏi</label>
         <input class="form-control" id="utterance" name="utterance" required placeholder="Xin chào, tôi muốn tư vấn về sản phẩm" />

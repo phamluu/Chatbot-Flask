@@ -304,3 +304,7 @@ form.login input[type="submit"]:hover {
   transform: translate(-50%, -50%);
   text-align: center;
 }
+.sidebar a.active
+ {
+    color: #e20f0f;
+}

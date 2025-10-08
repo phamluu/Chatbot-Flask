@@ -132,7 +132,11 @@ document.getElementById("train-button").addEventListener("click", async function
                 "X-CSRFToken": "{{ csrf_token() }}",  // Nếu bạn dùng CSRF protection
             }
         });
-
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.log("Server Error HTML:", errorText);
+            throw new Error("Lỗi từ server (status: " + response.status + ")");
+        }
         const data = await response.json();
         overlay.style.display = 'none';
 

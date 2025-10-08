@@ -20,7 +20,7 @@ def handle_manage_intent(request):
             flash('Please fill in all fields.', 'danger')
         return redirect(url_for('intent.manage_intent'))
 
-    intents = Intent.query.all()
+    intents = Intent.query.order_by(Intent.id.desc())
      # Đọc thời gian ước tính từ logs
     log_path = "logs/train_logs.json"
     estimated_time = 7.0  # mặc định
@@ -51,8 +51,8 @@ def handle_delete_intent(id):
 def handle_manage_intent_input(request, intent_id):
     if request.method == 'POST':
         utterance = request.form.get('utterance')
-        if intent_input.utterance:
-            intent_input = IntentInput(utterance=utterance, intent_id=intent_id)
+        if utterance:
+            intent_input = IntentInput(utterance=utterance, intent_id=intent_id, created_at = datetime.now())
             db.session.add(intent_input)
             db.session.commit()
             flash('Câu hỏi cho ý định đã được cập nhật!', 'success')

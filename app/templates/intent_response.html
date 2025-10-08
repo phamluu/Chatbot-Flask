@@ -25,16 +25,15 @@
 </style>
 <!-- Add Chatbot Response Form -->
 <div class="card mb-4">
-  <div class="card-header">Thêm câu hỏi</div>
+  <form method="POST" action="/intent_response/{{ intent_id }}" class="form-intent">
+  <div class="card-header"><button type="submit" class="btn btn-primary">Lưu</button></div>
   <div class="card-body">
-    <form method="POST" action="/intent_response/{{ intent_id }}" class="form-intent">
       <div class="mb-3">
         <label for="response_text" class="form-label">Câu trả lời</label>
-        <input class="form-control" id="response_text" name="response_text" required placeholder="Nhập câu trả lời" />
+        <textarea id="content" name="response_text" class="form-control"></textarea>
       </div>
-      <button type="submit" class="btn btn-primary">Thêm</button>
-    </form>
   </div>
+  </form>
 </div>
 
 <table class="table table-bordered">
@@ -50,14 +49,10 @@
     {% for intent_response in intent_responses %}
     <tr>
       <td>{{ intent_response.id }}</td>
-      <td>
-        <form method="POST" action="/intent_response/update/{{ intent_response.id }}" class="d-inline">
-          <input type="text" name="response_text" class="form-control" value="{{ intent_response.response_text}}"  required >
-      </td>
+      <td>{{ intent_response.response_text | safe }}</td>
       <td><span>{{ intent_response.created_at }}</span></td>
       <td>
-          <button type="submit" class="btn btn-success btn-sm">Save</button>
-        </form>
+          <button type="submit" class="btn btn-success btn-sm">Sửa</button>
         <form method="POST" action="/intent_response/delete/{{ intent_response.id }}" class="d-inline">
           <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>

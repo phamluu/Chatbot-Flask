@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trò chuyện với khách hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='summernote/summernote-bs4.min.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -89,15 +91,27 @@
                     <div class="sidebar shadow-sm">
                         <h5>Quản lý</h5>
                         <ul>
-                            <li><a href="/user">➤ Danh sách người dùng</a></li>
-                            <li><a href="/intent">➤ Phân loại ý định</a></li>
+                            <li><a href="/user" class="{% if request.path.startswith('/user') %}active{% endif %}">➤ Danh sách người dùng</a></li>
+                            <li><a href="/intent" class="{% if request.path.startswith('/intent') %}active{% endif %}">➤ Phân loại ý định</a></li>
                             <li><a href="#">➤ Lịch sử chat</a></li>
                         </ul>
 
                         <hr>
                         <div id="customer-list-container">
                             <h6>Khách hàng online <span class="text-muted">_</span></h6>
-                            <ul id="customer-list" class="list-group small"></ul>
+                            <ul id="customer-list" class="list-group small">
+                                {% for convo in sidebar_conversations %}
+                                <li class="list-group-item" data-convo-id="{{ convo.id }}">
+                                    <a href="/chat/{{ convo.id}}" 
+                                    class="text-decoration-none d-block">
+                                        <strong>{{ convo.username or convo.user_id }}</strong><br>
+                                        <small class="text-muted">Trạng thái: {{ convo.status }}</small>
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="list-group-item text-muted">Chưa có hội thoại nào.</li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     </div>
                     {% endif %}
@@ -113,8 +127,17 @@
             </div>
         </div>
     </main>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='summernote/summernote-bs4.min.js') }}"></script>
     <!-- Scripts -->
+     <script>
+        $(document).ready(function() {
+            $('#content').summernote({
+                height: 150, // chiều cao khung soạn thảo
+                placeholder: 'Nhập nội dung phim ở đây...'
+            });
+        });
+    </script>
     <script>
         const staffId = 42;
         const socket = io({ query: { user_id: staffId } });

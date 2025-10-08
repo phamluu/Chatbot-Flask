@@ -6,6 +6,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'mysecretkey')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Cấu hình kết nối đến MySQL (thay "localhost" bằng host của bạn nếu cần thiết)
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 280  # tính bằng giây, giúp reset pool trước khi timeout
+    }
     
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     # Bật các chức năng mặc định

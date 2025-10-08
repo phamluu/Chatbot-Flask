@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from flask_security import roles_required, login_required
 from flask import Blueprint, flash, jsonify, redirect, request, url_for
 
@@ -19,7 +20,20 @@ def train_intent():
     start_time = time.time()
     try:
         # Huấn luyện bằng subprocess
-        subprocess.run(['python', 'train_intent.py'], check=True)
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+        script_path = os.path.join(project_root, 'train_intent.py')
+
+        python_path = sys.executable  
+        log_file_path = os.path.join(project_root, "logs/train_output.log")
+        with open(log_file_path, "w") as log_file:
+            result = subprocess.run(
+                [python_path, script_path],
+                stdout=log_file,
+                stderr=log_file,
+                check=True,
+                text=True
+            )
+        
         end_time = time.time()
         actual_time = round(end_time - start_time, 2)
 
@@ -47,11 +61,11 @@ def train_intent():
             "actual_time": actual_time
         })
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         return jsonify({
             "success": False,
-            "message": "❌ Huấn luyện thất bại!"
-        })
+             "message": f"❌ Huấn luyện thất bại! Xem chi tiết log tại logs/train_output.log"
+        }), 500
 
 # intent management routes
 @intent_bp.route("/intent", methods=['GET', 'POST'])

@@ -120,8 +120,24 @@
 </head>
 
 <body>
+    <div style="position: fixed; width: 100%; left: 0; top: 0; height: 35px; overflow: hidden; text-align: center;
+        background: #e01a1a; color: #fff; text-transform: uppercase; align-items: center; font-weight: 700; align-content: center;">
+        TƯ VẤN 24/7
+    </div>
+    <div id="result">
+        <div class="form-group bot-reply">
+            <strong> Trợ lý AI:</strong> Chào bạn, mình là trợ lý AI. Rất vui được hỗ trợ bạn.
+        </div>
+        {% for msg in messages %}
+            <div class="form-group {{ msg.message_type }}-message">
+                <div class="inner">
+                    <b>{{ msg.message_type }}:</b> {{ msg.content }} <br>
+                    <small>{{ msg.sent_at }}</small>
+                </div>
+            </div>
+        {% endfor %}
 
-    <div id="result"></div>
+    </div>
     <div class="chat-form">
         <div class="container">
             <div id="chat-form-container">
@@ -171,22 +187,44 @@
                     data = JSON.parse(text);
                 } catch (jsonErr) {
                     console.error("❌ Lỗi khi parse JSON:", jsonErr, text);
-                    botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ❌ Phản hồi không hợp lệ từ server.`;
+                    botReply.innerHTML = `<strong>Trợ lý AI:</strong> ❌ Phản hồi không hợp lệ từ server.`;
                     botReply.scrollIntoView({ behavior: 'smooth' });
                     return;
                 }
 
-                botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ${data.html || data.response}`;
+                botReply.innerHTML = `<strong>Trợ lý AI:</strong> ${data.html || data.response}`;
                 botReply.scrollIntoView({ behavior: 'smooth' });
 
             } catch (err) {
                 console.error("❌ Lỗi fetch:", err);
-                botReply.innerHTML = `<strong>🤖 Chatbot:</strong> ❌ Không thể kết nối đến server.`;
+                botReply.innerHTML = `<strong>Trợ lý AI:</strong> ❌ Không thể kết nối đến server.`;
                 botReply.scrollIntoView({ behavior: 'smooth' });
             }
         });
 
     </script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const socket = io();
+
+    socket.on('connect', () => {
+        console.log('✅ User connected to SocketIO');
+    });
+
+    socket.on('new_message', (data) => {
+        // chỉ hiển thị tin admin gửi cho đúng hội thoại
+        if (data.conversation_id != "{{ conversation.id }}") return;
+
+        if (data.sender === 'admin') {
+            resultDiv.insertAdjacentHTML('beforeend', `
+                <div class="form-group admin-message">
+                    <div class="inner"><strong>🧑 Admin:</strong> ${data.message}</div>
+                </div>
+            `);
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+    });
+</script>
 
 </body>
 
