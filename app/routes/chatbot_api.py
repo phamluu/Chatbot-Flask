@@ -12,7 +12,7 @@ from app.extensions import socketio
 from flask_socketio import emit
 
 chatbot_api = Blueprint('chatbot_api', __name__) #endpoint: chatbot_api
-admin_active = True
+admin_active = False
 pending_messages = []  # lưu tin nhắn chờ admin xử lý
 
 #User
@@ -79,13 +79,28 @@ def chat_api():
             to=None
         )
 
+        # 🔹 Xử lý tin nhắn dựa trên trạng thái admin
         # 🤖 Nếu admin chưa active → chatbot tự trả lời
-        if admin_active != True:
+        if not admin_active:
             response_data = process_message(message)
-            response_data["source"] = "bot"
-            response_data["user_id"] = user_id
+            handle_new_msg("", convo.id,  response_data["response"], "bot")
+            socketio.emit(
+                'new_message',
+                {
+                    "conversation_id": convo.id,
+                    "sender": "bot",
+                    "message": response_data["response"]
+                },
+                to=None
+            )
             return jsonify(response_data)
-        #print("✅ Dữ liệu trả về từ process_message:", response_data)
+        else:
+            # admin đang online → chờ admin phản hồi
+            pending_messages.append({"conversation_id": convo.id, "message": message})
+            return jsonify({
+                "response": "Tin nhắn đã gửi đến admin, vui lòng chờ phản hồi.",
+                "source": "waiting"
+            })
     except Exception as e:
         print("❌ Lỗi trong chat_api:", e)
         traceback.print_exc()
@@ -142,6 +157,44 @@ def chat_admin(conversation_id):
 
         pending_messages.append({"user_id": "", "message": message})
         return jsonify({"response": message, "source": "waiting"})
+        
+    except Exception as e:
+        print("❌ Lỗi trong chat_api:", e)
+        traceback.print_exc()
+        return jsonify({"response": "❌ Lỗi nội bộ server.", "source": "error"}), 500
+
+# bot chuyển trạng thái admin active hay không active
+@csrf.exempt
+@chatbot_api.route("/chat/bot/<int:conversation_id>", methods=["POST"])
+def chat_bot(conversation_id):
+    global admin_active, pending_messages
+    if not request.is_json:
+        return jsonify({"response": "⚠️ Request không phải JSON.", "source": "error"}), 400
+    data = request.get_json(silent=True)
+    status = data.get("message", "").strip() if data else ""
+    if not status:
+        return jsonify({"response": "❗ Thiếu message.", "source": "error"}), 400
+    try:
+        # 🔹 Xử lý thay đổi trạng thái
+        if status == "active":
+            admin_active = True
+            message = "Admin đã tham gia cuộc trò chuyện."
+        elif status == "inactive":
+            admin_active = False
+            message = "Admin đã kết thúc cuộc trò chuyện."
+        handle_new_msg("", conversation_id, message, "bot")
+        socketio.emit(
+            "new_message",
+            {
+                "conversation_id": conversation_id,
+                "sender": "bot",
+                "message": message
+            },
+            to=None
+        )
+        pending_messages.append({"user_id": "", "message": message})
+
+        return jsonify({"response": message, "source": "status_updated"})
         
     except Exception as e:
         print("❌ Lỗi trong chat_api:", e)

@@ -98,7 +98,7 @@
             text-align: right;
         }
 
-        .user-message .inner {
+        .user-message .inner, .bot-message .inner, .admin-message .inner {
             background: #33333314;
             display: inline-block;
             padding: 0.5rem;
@@ -192,7 +192,7 @@
                     return;
                 }
 
-                botReply.innerHTML = `<strong>Trợ lý AI:</strong> ${data.html || data.response}`;
+                botReply.innerHTML = ``;
                 botReply.scrollIntoView({ behavior: 'smooth' });
 
             } catch (err) {
@@ -215,10 +215,10 @@
         // chỉ hiển thị tin admin gửi cho đúng hội thoại
         if (data.conversation_id != "{{ conversation.id }}") return;
 
-        if (data.sender === 'admin') {
+        if (data.sender != 'user') {
             resultDiv.insertAdjacentHTML('beforeend', `
-                <div class="form-group admin-message">
-                    <div class="inner"><strong>🧑 Admin:</strong> ${data.message}</div>
+                <div class="form-group ${data.sender}-message">
+                    <div class="inner"><strong>🧑 ${data.sender}:</strong> ${data.message}</div>
                 </div>
             `);
             resultDiv.scrollTop = resultDiv.scrollHeight;
