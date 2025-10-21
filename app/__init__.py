@@ -3,7 +3,7 @@ from flask import Flask, current_app, render_template
 from app.config import Config  # 🔁 Import Config chuẩn
 from app.extensions import db, migrate, socketio, security, mail, csrf  # ✅ Đã được tách ra đúng cách
 from flask_security import SQLAlchemyUserDatastore
-from app.models import Conversation, User, Role
+from app.models import Conversation, Message, User, Role
 
 
 def create_app(use_socketio=False):
@@ -70,18 +70,35 @@ def create_app(use_socketio=False):
                 db.session.query(Conversation)
                 .all()
             )
+            print("Injected conversations:", conversations)
             return dict(
                 sidebar_conversations=[
                     {
                         "id": c.id,
                         "user_id": c.user_id,
                         "status": c.status,
+                        "last_message": (
+                                lambda m: {
+                                    "id": m.id,
+                                    "sender_id": m.sender_id,
+                                    "message": m.message,
+                                    "sent_at": m.sent_at.strftime("%Y-%m-%d %H:%M:%S") if m.sent_at else None
+                                }
+                                if m else None
+                            )(
+                                db.session.query(Message)
+                                .filter(Message.conversation_id == c.id)
+                                .order_by(Message.sent_at.desc())
+                                .first()
+                            )
                     }
                     for c in conversations
                 ]
             )
         except Exception as e:
             current_app.logger.error(f"Lỗi khi inject_conversations: {e}")
-            return dict(sidebar_conversations=[])   
+            return dict(sidebar_conversations=[])
+        finally:
+            db.session.close()  
     return app
 
