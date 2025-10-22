@@ -82,6 +82,7 @@ def create_app(use_socketio=False):
                                     "id": m.id,
                                     "sender_id": m.sender_id,
                                     "message": m.message,
+                                    "message_type": m.message_type,
                                     "sent_at": m.sent_at.strftime("%Y-%m-%d %H:%M:%S") if m.sent_at else None
                                 }
                                 if m else None

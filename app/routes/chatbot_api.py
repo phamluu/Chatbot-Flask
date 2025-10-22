@@ -13,6 +13,7 @@ from flask_socketio import emit
 
 chatbot_api = Blueprint('chatbot_api', __name__) #endpoint: chatbot_api
 admin_active = False
+active_sessions = {}
 pending_messages = []  # lưu tin nhắn chờ admin xử lý
 
 #User
@@ -113,7 +114,12 @@ def chat_api():
 def view_conversation(conversation_id):
     convo = Conversation.query.get_or_404(conversation_id)
     messages = get_messages_by_conversation_id(convo.id)
-    return render_template("chat_detail.html", conversation=convo, messages=messages)
+    admin_active = session.get(f"admin_active_{conversation_id}", False)
+    #tạm
+    #key = f"admin_active_{conversation_id}"
+    print(f"session hội thoại 1: 🔄 {admin_active}")
+    #end tạm
+    return render_template("chat_detail.html", conversation=convo, messages=messages, admin_active=admin_active)
 
 @csrf.exempt
 @chatbot_api.route("/chat/<int:conversation_id>", methods=["POST"])
@@ -167,7 +173,7 @@ def chat_admin(conversation_id):
 @csrf.exempt
 @chatbot_api.route("/chat/bot/<int:conversation_id>", methods=["POST"])
 def chat_bot(conversation_id):
-    global admin_active, pending_messages
+    global active_sessions, pending_messages
     if not request.is_json:
         return jsonify({"response": "⚠️ Request không phải JSON.", "source": "error"}), 400
     data = request.get_json(silent=True)
@@ -177,11 +183,15 @@ def chat_bot(conversation_id):
     try:
         # 🔹 Xử lý thay đổi trạng thái
         if status == "active":
-            admin_active = True
+            active_sessions[conversation_id] = True
+            session[f"admin_active_{conversation_id}"] = True 
             message = "Admin đã tham gia cuộc trò chuyện."
         elif status == "inactive":
-            admin_active = False
+            active_sessions[conversation_id] = False
+            session[f"admin_active_{conversation_id}"] = False
             message = "Admin đã kết thúc cuộc trò chuyện."
+        
+
         handle_new_msg("", conversation_id, message, "bot")
         socketio.emit(
             "new_message",
@@ -192,6 +202,17 @@ def chat_bot(conversation_id):
             },
             to=None
         )
+
+        # 🔹 Gửi thêm sự kiện riêng để sidebar cập nhật trạng thái hội thoại
+        # socketio.emit(
+        #     "conversation_status",
+        #     {
+        #         "conversation_id": conversation_id,
+        #         "status": "active" if active_sessions.get(conversation_id) else "inactive"
+        #     },
+        #     broadcast=True
+        # )
+
         pending_messages.append({"user_id": "", "message": message})
 
         return jsonify({"response": message, "source": "status_updated"})

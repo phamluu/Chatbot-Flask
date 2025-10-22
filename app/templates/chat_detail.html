@@ -115,7 +115,7 @@ body:not(.chat-open) .admin-status-bar{
 </div>
 
 <!-- Khung chat (ẩn mặc định) -->
-<div class="chat-form" id="chat-form-wrapper" aria-hidden="true">
+<div class="chat-form" id="chat-form-wrapper" aria-hidden="{{ 'false' if admin_active else 'true' }}">
     <div id="chat-form-container">
         <form id="chat-form">
             <input type="text" id="message" name="message" placeholder="Ví dụ: Tôi muốn đặt thiệp cưới..." required autocomplete="off" />
@@ -136,7 +136,6 @@ const statusEl = document.getElementById('admin-status');
 const btnStart = document.getElementById('btn-start');
 const btnStop = document.getElementById('btn-stop');
 const chatWrapper = document.getElementById('chat-form-wrapper');
-
 let adminActive = false;
 
 // helper: show / hide chat and update body class so CSS height calc thay đổi
@@ -211,18 +210,32 @@ form.addEventListener('submit', async (e) =>{
 });
 
 // SocketIO - lắng nghe tin nhắn mới
-const socket = io();
-socket.on('connect', ()=> console.log('✅ Admin connected to SocketIO'));
-socket.on('new_message', (data) =>{
-    if (data.conversation_id != "{{ conversation.id }}") return;
-    if (data.sender != 'admin'){
-        resultDiv.insertAdjacentHTML('beforeend', `\n <div class="form-group ${data.sender}-message">\n                <div class="inner"><strong>🧑 ${data.sender}:</strong> ${data.message}</div>\n            </div>\n        `);
-        resultDiv.scrollTop = resultDiv.scrollHeight;
-    }
-});
+// const socket = io();
+// socket.on('connect', ()=> console.log('✅ Admin connected to SocketIO'));
+const socket = window.socket;
+// socket.on('new_message', (data) =>{
+//     if (data.conversation_id != "{{ conversation.id }}") return;
+//     if (data.sender != 'admin'){
+//         resultDiv.insertAdjacentHTML('beforeend', `\n <div class="form-group ${data.sender}-message">\n <div class="inner"><strong>🧑 ${data.sender}:</strong> ${data.message}</div>\n            </div>\n        `);
+//         resultDiv.scrollTop = resultDiv.scrollHeight;
+//     }
+    
+// });
 
 // scroll to bottom on load
-window.addEventListener('load', ()=>{ resultDiv.scrollTop = resultDiv.scrollHeight; });
+window.addEventListener('load', ()=>{ 
+    const admin_active = "{{ admin_active }}";
+    if (admin_active === "True" || admin_active === "true"){
+        $("#btn-start").hide();
+        $("#btn-stop").show();
+        showChat();
+    } else {
+        $("#btn-stop").hide();
+        $("#btn-start").show();
+        hideChat();
+    }
+    resultDiv.scrollTop = resultDiv.scrollHeight; 
+    });
 </script>
 
 {% endblock %}
