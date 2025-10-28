@@ -213,14 +213,14 @@ form.addEventListener('submit', async (e) =>{
 // const socket = io();
 // socket.on('connect', ()=> console.log('✅ Admin connected to SocketIO'));
 const socket = window.socket;
-// socket.on('new_message', (data) =>{
-//     if (data.conversation_id != "{{ conversation.id }}") return;
-//     if (data.sender != 'admin'){
-//         resultDiv.insertAdjacentHTML('beforeend', `\n <div class="form-group ${data.sender}-message">\n <div class="inner"><strong>🧑 ${data.sender}:</strong> ${data.message}</div>\n            </div>\n        `);
-//         resultDiv.scrollTop = resultDiv.scrollHeight;
-//     }
+socket.on('new_message', (data) =>{
+    if (data.conversation_id != "{{ conversation.id }}") return;
+    if (data.sender != 'admin'){
+        resultDiv.insertAdjacentHTML('beforeend', `\n <div class="form-group ${data.sender}-message">\n <div class="inner"><strong>🧑 ${data.sender}:</strong> ${data.message}</div>\n            </div>\n        `);
+        resultDiv.scrollTop = resultDiv.scrollHeight;
+    }
     
-// });
+});
 
 // scroll to bottom on load
 window.addEventListener('load', ()=>{ 

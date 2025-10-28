@@ -3,6 +3,7 @@ from app import db
 from datetime import datetime
 from flask_socketio import emit
 
+# Lấy danh sách tin nhắn theo ID hội thoại
 def get_messages_by_conversation_id(convo_id):
     messages = (
         Message.query
@@ -25,7 +26,7 @@ def get_messages_by_conversation_id(convo_id):
         for m in messages
     ]
 
-
+# Lấy dữ liệu người dùng kèm hội thoại (nếu có)
 def get_users_data():
     from sqlalchemy.sql import func
     users = db.session.query(
@@ -37,6 +38,7 @@ def get_users_data():
         'conversation_id': u.conversation_id
     } for u in users]
 
+# Xử lý tin nhắn mới
 def handle_new_msg(sender_id, conversation_id, message, message_type):
     msg = Message(
         sender_id=sender_id,
@@ -61,6 +63,7 @@ def handle_new_msg(sender_id, conversation_id, message, message_type):
     #                 'sent_at': msg.sent_at.strftime('%Y-%m-%d %H:%M:%S')
     #             }, to=sid)
 
+# Tạo hội thoại mới
 def create_conversation(data):
     convo = Conversation(staff_id=data['staff_id'], user_id=data['user_id'])
     db.session.add(convo)
@@ -71,6 +74,7 @@ def create_conversation(data):
         'user_id': convo.user_id
     }
 
+# Lấy hoặc tạo hội thoại mở cho người dùng
 def get_or_create_open_conversation(user_id):
     conv = Conversation.query.filter_by(user_id=user_id, status="open").first()
     if not conv:
@@ -78,3 +82,13 @@ def get_or_create_open_conversation(user_id):
         db.session.add(conv)
         db.session.commit()
     return conv
+
+# Xoá hội thoại và tin nhắn liên quan
+def handle_delete_conversation(conversation_id):
+    convo = Conversation.query.get(conversation_id)
+    if convo:
+        Message.query.filter_by(conversation_id=conversation_id).delete()
+        db.session.delete(convo)
+        db.session.commit()
+        return True
+    return False

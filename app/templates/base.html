@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trò chuyện với khách hàng</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='summernote/summernote-bs4.min.css') }}" rel="stylesheet" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -98,24 +99,39 @@
 
                         <hr>
                         <div id="customer-list-container">
-    <h6>Khách hàng online <span class="text-muted">_</span></h6>
+                <h6>Khách hàng online <span class="text-muted">_</span></h6>
                 <ul id="customer-list" class="list-group small">
-                    {% for convo in sidebar_conversations %}
-                    <li class="list-group-item" data-convo-id="{{ convo.id }}">
-                        <a href="/chat/{{ convo.id }}" class="text-decoration-none d-block">
-                            <strong>
-                                {{ convo.last_message.message if convo.last_message else 'Chưa có tin nhắn' }}
-                            </strong><br>
-                            <small class="text-muted">
-                               {{ convo.last_message.sent_at }} |
-                                Trạng thái: {{ convo.status }}
-                            </small>
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="list-group-item text-muted">Chưa có hội thoại nào.</li>
-                    {% endfor %}
-                </ul>
+    {% for convo in sidebar_conversations %}
+    <li class="list-group-item d-flex justify-content-between align-items-start" data-convo-id="{{ convo.id }}">
+        <a href="/chat/{{ convo.id }}" class="text-decoration-none flex-grow-1 me-2">
+            <div>
+                <strong>
+                    {{ convo.last_message.message if convo.last_message else 'Chưa có tin nhắn' }}
+                </strong>
+            </div>
+            <div>
+                <small class="text-muted">
+                    {{ convo.last_message.sent_at if convo.last_message else '' }} |
+                    Trạng thái: {{ convo.status }}
+                </small>
+            </div>
+        </a>
+
+        <!-- nút xóa riêng cho từng hội thoại -->
+        <div class="ms-2">
+            <button class="btn btn-sm btn-outline-danger delete-convo-btn"
+                    type="button"
+                    title="Xóa đoạn chat"
+                    onclick="event.stopPropagation(); confirmDeleteConversation({{ convo.id }});">
+                <i class="fa fa-remove"></i>
+            </button>
+        </div>
+    </li>
+    {% else %}
+    <li class="list-group-item text-muted">Chưa có hội thoại nào.</li>
+    {% endfor %}
+</ul>
+
             </div>
 
                     </div>
@@ -147,25 +163,6 @@
         const staffId = 42;
         window.socket = io({ query: { user_id: staffId } });
         window.socket.on('connect', () => console.log('✅ Socket connected (base)'));
-        // socket.on('update_conversations_staff', function (data) {
-        //     const convers = document.getElementById('chat-windows');
-        //     convers.innerHTML = '';
-        //     data.forEach(function (conver) {
-        //         const converItem = document.createElement('div');
-        //         converItem.id = 'chat-window-' + conver.id;
-        //         converItem.className = 'chat-window';
-        //         converItem.innerHTML = `
-        //             <div class="title"><span>Chat với khách hàng ${conver.user_id}</span><span class="minus"></span></div>
-        //             <div class="chat-box" id="chat-box-${conver.user_id}"></div>
-        //             <div class="input-container">
-        //                 <input type="text" id="message-input-${conver.user_id}" class="form-control" placeholder="Nhập tin nhắn...">
-        //                 <button class="btn btn-primary" onclick="sendMessage(${conver.user_id}, ${conver.id})">Gửi</button>
-        //             </div>
-        //         `;
-        //         convers.appendChild(converItem);
-        //         loadMessages(conver.id);
-        //     });
-        // });
 
         window.socket.on('update_user_list', function (user_data) {
             const userList = document.getElementById('customer-list');
@@ -211,6 +208,8 @@
             // Thêm hiệu ứng highlight ngắn để báo tin nhắn mới
             li.classList.add('bg-warning-subtle');
             setTimeout(() => li.classList.remove('bg-warning-subtle'), 2000);
+
+
         });
 
         function sendMessage(userId, conversation_id) {
@@ -271,6 +270,82 @@
             socket.emit('get_users');
         };
     </script>
+    <!-- Xóa hội thoại -->
+     <script>
+/**
+ * Xác nhận trước khi xóa
+ */
+function confirmDeleteConversation(conversationId) {
+    if (!conversationId) return;
+    if (confirm('Bạn có chắc muốn xóa toàn bộ đoạn chat này?')) {
+        deleteConversation(conversationId);
+    }
+}
+
+/**
+ * Gọi API DELETE và cập nhật UI
+ */
+function deleteConversation(conversationId) {
+    // Nếu dùng CSRF token (Flask-WTF), đặt token ở meta tag và gửi header X-CSRFToken
+    const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+    const headers = {
+        'Accept': 'application/json'
+    };
+    if (csrfTokenMeta) {
+        headers['X-CSRFToken'] = csrfTokenMeta.getAttribute('content');
+    }
+
+    fetch(`/api/conversation/${conversationId}`, {
+        method: 'DELETE',
+        headers: headers,
+        credentials: 'same-origin' // gửi cookie nếu backend cần session
+    })
+    .then(async res => {
+        if (res.ok) {
+            // xóa phần tử li khỏi DOM
+            const li = document.querySelector(`li[data-convo-id="${conversationId}"]`);
+            if (li) {
+                // hiệu ứng nhỏ trước khi remove (tuỳ chọn)
+                li.classList.add('fade-out');
+                setTimeout(() => li.remove(), 250);
+            }
+            // Chuyển sang trang tổng quan nếu đang ở trang chi tiết hội thoại đó
+            const currentPath = window.location.pathname;
+            if (currentPath.includes(`/chat/${conversationId}`)) {
+                window.location.href = '/dashboard';
+            }
+            // tùy chọn: yêu cầu server gửi lại danh sách online
+            // if (window.socket && window.socket.emit) {
+            //     window.socket.emit('get_users');
+            // }
+        } else {
+            // lấy lỗi từ server (nếu có)
+            let msg = 'Xóa thất bại.';
+            try {
+                const data = await res.json();
+                if (data && data.error) msg = data.error;
+            } catch (e) {}
+            alert(msg);
+        }
+    })
+    .catch(err => {
+        console.error('Lỗi khi xóa conversation:', err);
+        alert('Lỗi kết nối khi xóa conversation.');
+    });
+}
+</script>
+
+<style>
+/* hiệu ứng nhỏ khi xóa (tuỳ chọn) */
+.fade-out {
+    transition: opacity 0.25s ease, height 0.25s ease, margin 0.25s ease, padding 0.25s ease;
+    opacity: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+</style>
+
 </body>
 
 </html>

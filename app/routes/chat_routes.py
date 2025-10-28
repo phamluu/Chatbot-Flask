@@ -1,25 +1,25 @@
-from flask import Blueprint, render_template, request, jsonify
-from app.models import  Message
-from app.services.chat_service import get_messages_by_conversation_id
-import random
+# from flask import Blueprint, render_template, request, jsonify
+# from app.models import  Message
+# from app.services.chat_service import get_messages_by_conversation_id
+# import random
 
-# Bỏ tạm
-chat_bp = Blueprint('chat', __name__)
+# # Bỏ tạm
+# chat_bp = Blueprint('chat', __name__)
 
-@chat_bp.route('/chat')
-def chat():
-    return render_template('chat.html')
+# @chat_bp.route('/chat')
+# def chat():
+#     return render_template('chat.html')
 
-@chat_bp.route("/chat", methods=["POST"])
-def chat_post():
-    user_input = request.json.get("message", "").lower()
+# @chat_bp.route("/chat", methods=["POST"])
+# def chat_post():
+#     user_input = request.json.get("message", "").lower()
 
 
-    return jsonify({"response": "Xin lỗi, tôi chưa hiểu câu hỏi của bạn."})
+#     return jsonify({"response": "Xin lỗi, tôi chưa hiểu câu hỏi của bạn."})
 
-@chat_bp.route('/api/messages', methods=['GET'])
-def get_messages():
-    conversation_id = request.args.get('conversation_id')
-    if not conversation_id:
-        return jsonify({'error': 'Conversation ID is required'}), 400
-    return jsonify(get_messages_by_conversation_id(conversation_id))
+# @chat_bp.route('/api/messages', methods=['GET'])
+# def get_messages():
+#     conversation_id = request.args.get('conversation_id')
+#     if not conversation_id:
+#         return jsonify({'error': 'Conversation ID is required'}), 400
+#     return jsonify(get_messages_by_conversation_id(conversation_id))

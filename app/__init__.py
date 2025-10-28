@@ -48,8 +48,8 @@ def create_app(use_socketio=False):
     app.register_blueprint(intent)
     # end
 
-    from app.routes.chat_routes import chat_bp as chat
-    app.register_blueprint(chat)
+    # from app.routes.chat_routes import chat_bp as chat
+    # app.register_blueprint(chat)
 
     
     @app.errorhandler(403)

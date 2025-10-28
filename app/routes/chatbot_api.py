@@ -5,7 +5,7 @@ from flask_security import roles_required, login_required
 from flask import Blueprint, app, request, jsonify, render_template, session
 from flask_wtf import CSRFProtect
 from app.models import Conversation
-from app.services.chat_service import get_messages_by_conversation_id, get_or_create_open_conversation, handle_new_msg
+from app.services.chat_service import get_messages_by_conversation_id, get_or_create_open_conversation, handle_delete_conversation, handle_new_msg
 from app.services.chatbot_service import process_message
 from app.extensions import csrf 
 from app.extensions import socketio
@@ -31,45 +31,27 @@ def chatbot_view():
     # 🔹 5. Trả về giao diện kèm dữ liệu
     return render_template("chatbot.html", conversation=convo,messages=messages)
 
-@csrf.exempt
-@chatbot_api.route("/api/chat", methods=["POST"])
-def chat_api():
-    # Lưu tin nhắn vào hội thoại
-    # Nếu admin thì trả lời và lưu vào hội thoại
-    # Nếu admin chưa active thì chatbot trả lời
-    # Giả lập trạng thái admin
-    global admin_active, pending_messages
-
+# gửi tin nhắn
+@chatbot_api.route("/api/send", methods=["POST"])
+def send_message():
     if not request.is_json:
-        #print("❌ Request không phải JSON.")
         return jsonify({"response": "⚠️ Request không phải JSON.", "source": "error"}), 400
-
     data = request.get_json(silent=True)
     message = data.get("message", "").strip() if data else ""
-    
     user_id = session.get("user_id")
     if not user_id:
         user_id = str(uuid.uuid4())
         session["user_id"] = user_id
     if not message:
-        #print("❌ Thiếu message.")
         return jsonify({"response": "❗ Vui lòng nhập nội dung.", "source": "error"}), 400
-
-    #print("📩 Nhận message:", message)
-
     try:
-        #Lưu tin nhắn người dùng vào DB
         convo = get_or_create_open_conversation(user_id)
-        print("🔍 Hội thoại hiện tại:", convo.id)
-        print("💬 Tin nhắn từ người dùng:", user_id)
         handle_new_msg(
             user_id,          
             convo.id,         
             message,          
             "user"            
         )
-
-        # Gửi sự kiện real-time cho admin nếu có kết nối
         socketio.emit(
             'new_message',
             {
@@ -79,22 +61,47 @@ def chat_api():
             },
             to=None
         )
+        return jsonify({
+            "response": "✅ Tin nhắn đã gửi thành công.",
+            "conversation_id": convo.id,
+            "source": "success"
+        }), 200
+    except Exception as e:
+        print("❌ Lỗi trong chat_api:", e)
+        traceback.print_exc()
+        return jsonify({"response": "❌ Lỗi nội bộ server.", "source": "error"}), 500
 
-        # 🔹 Xử lý tin nhắn dựa trên trạng thái admin
-        # 🤖 Nếu admin chưa active → chatbot tự trả lời
+# Kiểm tra trạng thái admin để phản hồi tự động nếu cần
+@chatbot_api.route("/api/response", methods=["POST"])
+def response_message():
+    global admin_active, pending_messages
+    if not request.is_json:
+        #print("❌ Request không phải JSON.")
+        return jsonify({"response": "⚠️ Request không phải JSON.", "source": "error"}), 400
+    data = request.get_json(silent=True)
+    message = data.get("message", "").strip() if data else ""
+    user_id = session.get("user_id")
+    if not user_id:
+        user_id = str(uuid.uuid4())
+        session["user_id"] = user_id
+    if not message:
+        #print("❌ Thiếu message.")
+        return jsonify({"response": "❗ Vui lòng nhập nội dung.", "source": "error"}), 400
+    try:
+        convo = get_or_create_open_conversation(user_id)
         if not admin_active:
-            response_data = process_message(message)
-            handle_new_msg("", convo.id,  response_data["response"], "bot")
-            socketio.emit(
-                'new_message',
-                {
-                    "conversation_id": convo.id,
-                    "sender": "bot",
-                    "message": response_data["response"]
-                },
-                to=None
-            )
-            return jsonify(response_data)
+                response_data = process_message(message)
+                handle_new_msg("", convo.id,  response_data["response"], "bot")
+                socketio.emit(
+                    'new_message',
+                    {
+                        "conversation_id": convo.id,
+                        "sender": "bot",
+                        "message": response_data["response"]
+                    },
+                    to=None
+                )
+                return jsonify(response_data)
         else:
             # admin đang online → chờ admin phản hồi
             pending_messages.append({"conversation_id": convo.id, "message": message})
@@ -108,8 +115,8 @@ def chat_api():
         return jsonify({"response": "❌ Lỗi nội bộ server.", "source": "error"}), 500
 
 
-
 # Admin
+# Admin xem chi tiết hội thoại
 @chatbot_api.route("/chat/<int:conversation_id>")
 def view_conversation(conversation_id):
     convo = Conversation.query.get_or_404(conversation_id)
@@ -121,6 +128,7 @@ def view_conversation(conversation_id):
     #end tạm
     return render_template("chat_detail.html", conversation=convo, messages=messages, admin_active=admin_active)
 
+# Admin gửi tin nhắn trong hội thoại
 @csrf.exempt
 @chatbot_api.route("/chat/<int:conversation_id>", methods=["POST"])
 def chat_admin(conversation_id):
@@ -221,3 +229,17 @@ def chat_bot(conversation_id):
         print("❌ Lỗi trong chat_api:", e)
         traceback.print_exc()
         return jsonify({"response": "❌ Lỗi nội bộ server.", "source": "error"}), 500
+
+# Admin xóa hội thoại
+@chatbot_api.route('/api/conversation/<int:conversation_id>', methods=['DELETE'])
+@csrf.exempt
+def delete_conversation(conversation_id):
+    convo = Conversation.query.get(conversation_id)
+    if not convo:
+        return jsonify({"error": "Conversation not found"}), 404
+    handle_delete_conversation(conversation_id)
+
+    # nếu dùng socket để broadcast thay đổi, emit event ở đây (tuỳ cách triển khai)
+    # socketio.emit('conversation_deleted', {'conversation_id': conversation_id}, broadcast=True)
+
+    return jsonify({"message": "Conversation deleted"}), 200
