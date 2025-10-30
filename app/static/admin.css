@@ -1,0 +1,160 @@
+ body {
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #343a40;
+            padding: 1rem 0;
+            color: white;
+        }
+        .header-title {
+            font-size: 1.8rem;
+        }
+        .logout-btn {
+            float: right;
+        }
+        .sidebar {
+            background-color: white;
+            border-right: 1px solid #ddd;
+            padding: 1rem;
+            height: 100%;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .chat-window {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fefefe;
+            margin-bottom: 10px;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .message {
+            margin-bottom: 5px;
+        }
+        .message.staff {
+            color: #007bff;
+        }
+        .message.user {
+            color: #28a745;
+        }
+        .fade-out {
+            transition: opacity 0.25s ease, height 0.25s ease, margin 0.25s ease, padding 0.25s ease;
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+:root{
+    --chat-form-height: 72px;   /* chiều cao khung chat */
+    --admin-bar-height: 56px;   /* chiều cao thanh trạng thái */
+    --page-gap: 20px;           /* khoảng cách tổng thể */
+}
+
+html,body{ height:100%; }
+body{ margin:0; padding:0; font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f5f6f8; }
+
+/* Khu vực tin nhắn - mặc định (chat ẩn): chỉ chừa chỗ cho admin bar */
+#result {
+    width: 90%;
+    max-width: 980px;
+    margin: var(--page-gap) auto;
+    padding: 1em;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    /* khi chat đóng thì chỉ chừa chỗ cho admin bar (không chừa chỗ cho chat form) */
+    height: calc(100vh - (var(--admin-bar-height) + var(--page-gap) + 20px));
+    min-height: 120px;
+    overflow-y: auto;
+}
+
+/* Khi chat mở, result sẽ co lại để nhường chỗ cho chat form + admin bar */
+body.chat-open #result{
+    height: calc(100vh - (var(--admin-bar-height) + var(--chat-form-height) + var(--page-gap) + 20px));
+}
+
+.form-group{ margin: 1rem 0; }
+.form-group small{ text-align:right; display:block; }
+.form-group.admin-message, .form-group.bot-message { text-align: right; }
+.user-message .inner { background: #33333314; display:inline-block; padding:0.5rem; border-radius:11px; }
+
+/* Khung chat (fixed bottom) - ẩn mặc định. Khi body.chat-open => hiển thị. */
+.chat-form{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: var(--chat-form-height);
+    display: none; /* hiển thị khi body có class chat-open */
+    align-items: center;
+    z-index: 999;
+    background-color: rgba(255,255,255,0.98);
+    border-top: 1px solid #e6e6e6;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+}
+
+body.chat-open .chat-form{ display:flex; }
+
+#chat-form-container{ width: 700px; max-width: 100%; margin: 0 auto; padding: 10px 15px; display:flex; align-items:center; }
+#chat-form{ display:flex; width:100%; align-items:center; }
+input[type="text"]{ flex:1; border:none; padding:12px 16px; font-size:16px; border-radius:30px; outline:none; background:#f8f9fa; }
+button{ border:none; background:#007bff; color:#fff; padding:12px 18px; margin-left:10px; font-size:16px; border-radius:30px; cursor:pointer; }
+button:hover{ background:#0056b3; }
+
+/* Thanh trạng thái admin - đặt phía trên, "ngoài" khung chat (không nằm trong vùng scroll result) */
+.admin-status-bar{
+    margin: var(--page-gap) auto;
+    height: var(--admin-bar-height);
+    z-index: 1000;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width: min(920px, 95%);
+    padding: 8px 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+}
+
+/* Nếu chat đang đóng, muốn thanh admin vẫn nằm trên cùng khu vực phía dưới (vẫn ngoài vùng scroll) */
+body:not(.chat-open) .admin-status-bar{
+    bottom: 16px; /* cách đáy màn hình 16px khi chat ẩn */
+}
+
+.status-indicator{ font-weight:700; color:#dc3545; }
+.status-indicator.active{ color:#28a745; }
+.btn-toggle{ border:none; padding:8px 12px; border-radius:8px; cursor:pointer; color:#fff; font-weight:700; }
+.btn-start{ background:#28a745; }
+.btn-start:hover{ background:#218838; }
+.btn-stop{ background:#dc3545; }
+.btn-stop:hover{ background:#c82333; }
+
+/* Responsive */
+@media (max-width:720px){
+    :root{ --chat-form-height: 64px; --admin-bar-height: 52px; }
+    #chat-form-container{ padding:8px; }
+    input[type="text"]{ font-size:14px; padding:10px 12px; }
+    .admin-status-bar{ width: calc(100% - 32px); bottom: calc(var(--chat-form-height) + 8px); }
+}

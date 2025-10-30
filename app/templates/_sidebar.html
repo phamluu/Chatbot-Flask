@@ -1,0 +1,49 @@
+{% if current_user.has_role('admin') %}
+                    <div class="sidebar shadow-sm">
+                        <h5>Quản lý</h5>
+                        <ul>
+                            <li><a href="/user" class="{% if request.path.startswith('/user') %}active{% endif %}">➤
+                                    Danh sách người dùng</a></li>
+                            <li><a href="/intent" class="{% if request.path.startswith('/intent') %}active{% endif %}">➤
+                                    Phân loại ý định</a></li>
+                            <li><a href="#">➤ Lịch sử chat</a></li>
+                        </ul>
+                        <hr>
+                        <div id="customer-list-container">
+                            <h6>Khách hàng online <span class="text-muted">_</span></h6>
+                            <ul id="customer-list" class="list-group small">
+                                {% for convo in sidebar_conversations %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start"
+                                    data-convo-id="{{ convo.id }}">
+                                    <a href="/chat/{{ convo.id }}" class="text-decoration-none flex-grow-1 me-2">
+                                        <div>
+                                            <strong>
+                                                {{ convo.last_message.message if convo.last_message else 'Chưa có tin
+                                                nhắn' }}
+                                            </strong>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">
+                                                {{ convo.last_message.sent_at if convo.last_message else '' }} |
+                                                Trạng thái: {{ convo.status }}
+                                            </small>
+                                        </div>
+                                    </a>
+
+                                    <!-- nút xóa riêng cho từng hội thoại -->
+                                    <div class="ms-2">
+                                        <button class="btn btn-sm btn-outline-danger delete-convo-btn" type="button"
+                                            title="Xóa đoạn chat"
+                                            onclick="event.stopPropagation(); confirmDeleteConversation({{ convo.id }});">
+                                            <i class="fa fa-remove"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                                {% else %}
+                                <li class="list-group-item text-muted">Chưa có hội thoại nào.</li>
+                                {% endfor %}
+                            </ul>
+
+                        </div>
+                    </div>
+                    {% endif %}

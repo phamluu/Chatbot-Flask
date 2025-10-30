@@ -92,3 +92,19 @@ def handle_delete_conversation(conversation_id):
         db.session.commit()
         return True
     return False
+
+# Cập nhật id nhân viên cho hội thoại
+def update_conversation_staff(conversation_id, staff_id):
+    convo = Conversation.query.get(conversation_id)
+    if convo:
+        convo.staff_id = staff_id
+        db.session.commit()
+        return True
+    return False
+
+# Kiểm tra xem có nhân viên nào đang tham gia hội thoại không
+def is_staff_active_in_conversation(conversation_id):
+    convo = Conversation.query.get(conversation_id)
+    if convo and convo.staff_id:
+        return True
+    return False

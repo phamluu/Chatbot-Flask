@@ -308,3 +308,113 @@ form.login input[type="submit"]:hover {
  {
     color: #e20f0f;
 }
+
+
+ body {
+            font-family: 'Segoe UI', sans-serif;
+            padding: 2em;
+            background: #f0f2f5;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #result {
+            margin-bottom: 120px;
+            /* khoảng trống dưới cho form */
+            padding: 1em;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            min-height: 100px;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin: 1rem 0;
+        }
+
+        .form-group small {
+            text-align: right;
+            display: block;
+        }
+
+        /* Chat input form fixed at bottom */
+        #chat-form-container {
+            width: 700px;
+            max-width: 100%;
+            margin: auto;
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            padding: 10px 15px;
+            display: flex;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
+            margin-top: 10px;
+        }
+
+        .chat-form {
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: #fff;
+        }
+
+        #chat-form {
+            display: flex;
+            width: 100%;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            font-size: 16px;
+            border-radius: 30px;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            background: #007bff;
+            color: white;
+            padding: 12px 18px;
+            margin-left: 10px;
+            font-size: 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        
+
+        .user-message .inner,
+        .bot-message .inner,
+        .admin-message .inner {
+            background: #33333314;
+            display: inline-block;
+            padding: 0.5rem;
+            border-radius: 11px;
+        }
+
+        @media (max-width: 600px) {
+            #chat-form-container {
+                left: 10px;
+                right: 10px;
+            }
+
+            input[type="text"],
+            button {
+                font-size: 14px;
+            }
+        }
