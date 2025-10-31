@@ -17,10 +17,10 @@
                                     data-convo-id="{{ convo.id }}">
                                     <a href="/chat/{{ convo.id }}" class="text-decoration-none flex-grow-1 me-2">
                                         <div>
-                                            <strong>
-                                                {{ convo.last_message.message if convo.last_message else 'Chưa có tin
-                                                nhắn' }}
-                                            </strong>
+                                            <strong>👤 Hội thoại: {{ convo.id }} </strong><br>
+                                            <span>
+                                                {{convo.last_message.message_type}} : {{ convo.last_message.message if convo.last_message else 'Chưa có tin nhắn' }}
+                                            </span>
                                         </div>
                                         <div>
                                             <small class="text-muted">

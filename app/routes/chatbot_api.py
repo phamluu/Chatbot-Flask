@@ -25,12 +25,19 @@ def chatbot_view():
         user_id = str(uuid.uuid4())
         session["user_id"] = user_id
     # 🔹 2. Lấy hoặc tạo hội thoại đang mở
-    convo = get_or_create_open_conversation(user_id)
-    # 🔹 3. Lấy danh sách tin nhắn trong hội thoại đó
+    conversation_id = session.get("conversation_id")
+    if conversation_id:
+        convo = Conversation.query.get(conversation_id)
+        if not convo:
+            convo = get_or_create_open_conversation(user_id)
+            session["conversation_id"] = convo.id
+    else:
+        convo = get_or_create_open_conversation(user_id)
+        session["conversation_id"] = convo.id
     messages = get_messages_by_conversation_id(convo.id)
-    print(f"🆔 User ID: {user_id}, Hội thoại ID: {convo.id}, Tin nhắn: {len(messages)}")
-    # 🔹 5. Trả về giao diện kèm dữ liệu
-    return render_template("chatbot.html", conversation=convo,messages=messages)
+    print("=== SESSION HIỆN TẠI ===")
+    print(dict(session))
+    return render_template("chatbot.html", conversation=convo, messages=messages)
 
 # gửi tin nhắn
 @chatbot_api.route("/api/send", methods=["POST"])
@@ -39,6 +46,7 @@ def send_message():
         return jsonify({"response": "⚠️ Request không phải JSON.", "source": "error"}), 400
     data = request.get_json(silent=True)
     message = data.get("message", "").strip() if data else ""
+    conversation_id = data.get("conversation_id")
     user_id = session.get("user_id")
     if not user_id:
         user_id = str(uuid.uuid4())
@@ -46,17 +54,17 @@ def send_message():
     if not message:
         return jsonify({"response": "❗ Vui lòng nhập nội dung.", "source": "error"}), 400
     try:
-        convo = get_or_create_open_conversation(user_id)
+        #convo = get_or_create_open_conversation(user_id)
         handle_new_msg(
-            user_id,          
-            convo.id,         
-            message,          
-            "user"            
+            user_id,
+            conversation_id,
+            message,
+            "user"
         )
         socketio.emit(
             'new_message',
             {
-                "conversation_id": convo.id,
+                "conversation_id": conversation_id,
                 "sender": "user",
                 "message": message
             },
@@ -64,7 +72,7 @@ def send_message():
         )
         return jsonify({
             "response": "✅ Tin nhắn đã gửi thành công.",
-            "conversation_id": convo.id,
+            "conversation_id": conversation_id,
             "source": "success"
         }), 200
     except Exception as e:
@@ -81,6 +89,7 @@ def response_message():
         return jsonify({"response": "⚠️ Request không phải JSON.", "source": "error"}), 400
     data = request.get_json(silent=True)
     message = data.get("message", "").strip() if data else ""
+    conversation_id = data.get("conversation_id")
     user_id = session.get("user_id")
     if not user_id:
         user_id = str(uuid.uuid4())
@@ -89,16 +98,16 @@ def response_message():
         #print("❌ Thiếu message.")
         return jsonify({"response": "❗ Vui lòng nhập nội dung.", "source": "error"}), 400
     try:
-        convo = get_or_create_open_conversation(user_id)
+        #convo = get_or_create_open_conversation(user_id)
         # Kiểm tra có nhân viên trong hội thoại không
-        admin_active = is_staff_active_in_conversation(convo.id)
+        admin_active = is_staff_active_in_conversation(conversation_id)
         if not admin_active:
                 response_data = process_message(message)
-                handle_new_msg("", convo.id,  response_data["response"], "bot")
+                handle_new_msg("", conversation_id,  response_data["response"], "bot")
                 socketio.emit(
                     'new_message',
                     {
-                        "conversation_id": convo.id,
+                        "conversation_id": conversation_id,
                         "sender": "bot",
                         "message": response_data["response"]
                     },
@@ -107,7 +116,7 @@ def response_message():
                 return jsonify(response_data)
         else:
             # admin đang online → chờ admin phản hồi
-            pending_messages.append({"conversation_id": convo.id, "message": message})
+            pending_messages.append({"conversation_id": conversation_id, "message": message})
             return jsonify({
                 "response": "Tin nhắn đã gửi đến admin, vui lòng chờ phản hồi.",
                 "source": "waiting"

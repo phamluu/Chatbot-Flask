@@ -27,7 +27,9 @@
         }
         .sidebar ul li a {
             text-decoration: none;
-            color: #007bff;
+        }
+        .sidebar ul li a strong{
+           color: #007bff;
         }
         .chat-window {
             border: 1px solid #ddd;

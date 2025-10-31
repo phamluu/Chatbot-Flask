@@ -76,7 +76,7 @@ def create_conversation(data):
 
 # Lấy hoặc tạo hội thoại mở cho người dùng
 def get_or_create_open_conversation(user_id):
-    conv = Conversation.query.filter_by(user_id=user_id, status="open").first()
+    conv = Conversation.query.filter_by(user_id=user_id).first()
     if not conv:
         conv = Conversation(user_id=user_id, status="open")
         db.session.add(conv)

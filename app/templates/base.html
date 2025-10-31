@@ -112,7 +112,11 @@
             if (!li) return; // Nếu không tìm thấy, thoát
             const strong = li.querySelector('strong');
             if (strong) {
-                strong.textContent = data.sender + ": " + data.message;
+                strong.textContent = "👤 Hội thoại: " + data.conversation_id;
+            }
+            const span = li.querySelector('span');
+            if (span) {
+                span.textContent = data.sender + " : " + data.message;
             }
             // Cập nhật thời gian gửi trong <small>
             const small = li.querySelector('small');

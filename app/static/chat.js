@@ -1,6 +1,7 @@
 (function() {
     const chatFrame = document.createElement('iframe');
-    chatFrame.src = "https://chatbot.inanhonglen.com";
+    //chatFrame.src = "https://chatbot.inanhonglen.com";
+    chatFrame.src = "http://localhost:5000/";
     chatFrame.style.position = "fixed";
     chatFrame.style.bottom = "20px";
     chatFrame.style.right = "20px";

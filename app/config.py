@@ -11,6 +11,9 @@ class Config:
         'pool_recycle': 280  # tính bằng giây, giúp reset pool trước khi timeout
     }
     
+  
+
+
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     # Bật các chức năng mặc định
     WTF_CSRF_CHECK_DEFAULT = False
