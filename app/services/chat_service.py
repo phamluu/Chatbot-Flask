@@ -39,13 +39,14 @@ def get_users_data():
     } for u in users]
 
 # Xử lý tin nhắn mới
-def handle_new_msg(sender_id, conversation_id, message, message_type):
+def handle_new_msg(sender_id, conversation_id, intent_code, message, message_type):
     msg = Message(
         sender_id=sender_id,
         conversation_id=conversation_id,
         message=message,
         message_type=message_type,
-        sent_at=datetime.now()
+        sent_at=datetime.now(),
+        intent_code=intent_code
     )
     db.session.add(msg)
     db.session.commit()

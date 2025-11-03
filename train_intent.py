@@ -36,6 +36,12 @@ with app.app_context():
     label_encoder = LabelEncoder()
     encoded_labels = label_encoder.fit_transform(labels)
 
+    # ✅ Thêm phần chia dữ liệu train/validation tại đây
+    from sklearn.model_selection import train_test_split
+    train_texts, val_texts, train_labels, val_labels = train_test_split(
+        texts, encoded_labels, test_size=0.2, stratify=encoded_labels, random_state=42
+    )
+
     tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
 
     class IntentDataset(Dataset):
@@ -52,7 +58,8 @@ with app.app_context():
                 self.texts[idx],
                 padding="max_length",
                 truncation=True,
-                max_length=12,  # Giảm độ dài để tiết kiệm RAM
+                #max_length=12,  # Giảm độ dài để tiết kiệm RAM, có thể cắt cụt nhiều câu → làm model học sai.
+                max_length=32, 
                 return_tensors="pt"
             )
             return {
@@ -62,26 +69,73 @@ with app.app_context():
             }
 
     train_dataset = IntentDataset(texts, encoded_labels, tokenizer)
+    val_dataset = IntentDataset(val_texts, val_labels, tokenizer)
 
     model = AutoModelForSequenceClassification.from_pretrained(
         MODEL_DIR,
         num_labels=len(label_encoder.classes_),
         ignore_mismatched_sizes=True
     )
+    # --- Gán mapping nhãn đúng cho model ---
+    id2label = {i: label for i, label in enumerate(label_encoder.classes_)}
+    label2id = {label: i for i, label in enumerate(label_encoder.classes_)}
+    model.config.id2label = id2label
+    model.config.label2id = label2id
 
     training_args = TrainingArguments(
         output_dir=SAVE_PATH,
-        num_train_epochs=3,
-        per_device_train_batch_size=1,   # Giảm batch size xuống 1
-        save_strategy="no",
-        evaluation_strategy="no",
-        logging_strategy="no"
+        num_train_epochs=5,
+        per_device_train_batch_size=2,   # Giảm batch size xuống 1
+        #save_strategy="no",
+        #evaluation_strategy="no",
+        #logging_strategy="no"
+
+        save_strategy="epoch",   # ✅ Lưu checkpoint sau mỗi epoch
+        evaluation_strategy="epoch",
+        logging_strategy="steps",
+        logging_steps=10,
+        save_total_limit=2       # ✅ Giữ lại tối đa 2 checkpoint gần nhất
     )
 
-    trainer = Trainer(
+    from sklearn.utils.class_weight import compute_class_weight
+    import numpy as np
+
+    class_weights = compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(encoded_labels),
+        y=encoded_labels
+    )
+    class_weights = torch.tensor(class_weights, dtype=torch.float)
+
+    # Gán vào loss function trong Trainer
+    from transformers import Trainer
+    from torch.nn import CrossEntropyLoss
+
+    def compute_loss(model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+        loss_fct = CrossEntropyLoss(weight=class_weights.to(logits.device))
+        loss = loss_fct(logits.view(-1, model.config.num_labels), labels.view(-1))
+        return (loss, outputs) if return_outputs else loss
+
+    from transformers import Trainer
+    from torch.nn import CrossEntropyLoss
+
+    class WeightedTrainer(Trainer):
+        def compute_loss(self, model, inputs, return_outputs=False):
+            labels = inputs.pop("labels")
+            outputs = model(**inputs)
+            logits = outputs.logits
+            loss_fct = CrossEntropyLoss(weight=class_weights.to(logits.device))
+            loss = loss_fct(logits.view(-1, model.config.num_labels), labels.view(-1))
+            return (loss, outputs) if return_outputs else loss
+    
+    trainer = WeightedTrainer(
         model=model,
         args=training_args,
-        train_dataset=train_dataset
+        train_dataset=train_dataset,
+        eval_dataset=val_dataset
     )
 
     try:

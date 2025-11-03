@@ -62,44 +62,89 @@ def create_app(use_socketio=False):
         <h1>500 Internal Server Error</h1>
         <pre>{traceback.format_exc()}</pre>
         """, 500
-    
     @app.context_processor
     def inject_conversations():
         try:
-            conversations = (
-                db.session.query(Conversation)
-                .all()
+            # Lấy tất cả hội thoại
+            conversations = db.session.query(Conversation).all()
+
+            # Tạo danh sách dict chứa hội thoại + tin nhắn cuối cùng
+            sidebar_conversations = []
+            for c in conversations:
+                last_message = (
+                    db.session.query(Message)
+                    .filter(Message.conversation_id == c.id)
+                    .order_by(Message.sent_at.desc())
+                    .first()
+                )
+                sidebar_conversations.append({
+                    "id": c.id,
+                    "user_id": c.user_id,
+                    "status": c.status,
+                    "last_message": (
+                        {
+                            "id": last_message.id,
+                            "sender_id": last_message.sender_id,
+                            "message": last_message.message,
+                            "message_type": last_message.message_type,
+                            "sent_at": last_message.sent_at.strftime("%Y-%m-%d %H:%M:%S") if last_message.sent_at else None
+                        }
+                        if last_message else None
+                    )
+                })
+            
+            # 🔽 Sắp xếp theo last_message.sent_at giảm dần
+            sidebar_conversations.sort(
+                key=lambda c: c["last_message"]["sent_at"] if c["last_message"] else "",
+                reverse=True
             )
-            print("Injected conversations:", conversations)
-            return dict(
-                sidebar_conversations=[
-                    {
-                        "id": c.id,
-                        "user_id": c.user_id,
-                        "status": c.status,
-                        "last_message": (
-                                lambda m: {
-                                    "id": m.id,
-                                    "sender_id": m.sender_id,
-                                    "message": m.message,
-                                    "message_type": m.message_type,
-                                    "sent_at": m.sent_at.strftime("%Y-%m-%d %H:%M:%S") if m.sent_at else None
-                                }
-                                if m else None
-                            )(
-                                db.session.query(Message)
-                                .filter(Message.conversation_id == c.id)
-                                .order_by(Message.sent_at.desc())
-                                .first()
-                            )
-                    }
-                    for c in conversations
-                ]
-            )
+
+            print("Injected conversations:", sidebar_conversations)
+            return dict(sidebar_conversations=sidebar_conversations)
         except Exception as e:
             current_app.logger.error(f"Lỗi khi inject_conversations: {e}")
             return dict(sidebar_conversations=[])
+
         finally:
-            db.session.close()  
+            db.session.close()
+
+    # @app.context_processor
+    # def inject_conversations():
+    #     try:
+    #         conversations = (
+    #             db.session.query(Conversation)
+    #             .all()
+    #         )
+    #         print("Injected conversations:", conversations)
+    #         return dict(
+    #             sidebar_conversations=[
+    #                 {
+    #                     "id": c.id,
+    #                     "user_id": c.user_id,
+    #                     "status": c.status,
+    #                     "last_message": (
+    #                             lambda m: {
+    #                                 "id": m.id,
+    #                                 "sender_id": m.sender_id,
+    #                                 "message": m.message,
+    #                                 "message_type": m.message_type,
+    #                                 "sent_at": m.sent_at.strftime("%Y-%m-%d %H:%M:%S") if m.sent_at else None
+    #                             }
+    #                             if m else None
+    #                         )(
+    #                             db.session.query(Message)
+    #                             .filter(Message.conversation_id == c.id)
+    #                             .order_by(Message.sent_at.desc())
+    #                             .first()
+    #                         )
+    #                 }
+    #                 for c in conversations
+    #             ]
+    #         )
+    #     except Exception as e:
+    #         current_app.logger.error(f"Lỗi khi inject_conversations: {e}")
+    #         return dict(sidebar_conversations=[])
+    #     finally:
+    #         db.session.close()  
     return app
 

@@ -44,6 +44,7 @@ class Message(db.Model):
     message = db.Column(db.String(64), nullable=True)
     message_type = db.Column(db.String(50), nullable=True)
     sent_at = db.Column(db.TIMESTAMP, nullable=True)
+    intent_code = db.Column(db.String(50))
     
 class Intent(db.Model):
     __tablename__ = 'intents'

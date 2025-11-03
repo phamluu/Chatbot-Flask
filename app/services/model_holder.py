@@ -25,7 +25,8 @@ class ModelHolder:
         model_instance = AutoModelForSequenceClassification.from_pretrained(
             self.model_path,
             num_labels=num_labels,
-            ignore_mismatched_sizes=True
+            #ignore_mismatched_sizes=True
+            #ignore_mismatched_sizes=False
         ).to(self.device)
 
         self.model = model_instance.eval()

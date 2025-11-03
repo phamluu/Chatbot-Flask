@@ -35,8 +35,8 @@ def chatbot_view():
         convo = get_or_create_open_conversation(user_id)
         session["conversation_id"] = convo.id
     messages = get_messages_by_conversation_id(convo.id)
-    print("=== SESSION HIỆN TẠI ===")
-    print(dict(session))
+    # print("=== SESSION HIỆN TẠI ===")
+    # print(dict(session))
     return render_template("chatbot.html", conversation=convo, messages=messages)
 
 # gửi tin nhắn
@@ -58,6 +58,7 @@ def send_message():
         handle_new_msg(
             user_id,
             conversation_id,
+            "",
             message,
             "user"
         )
@@ -102,8 +103,8 @@ def response_message():
         # Kiểm tra có nhân viên trong hội thoại không
         admin_active = is_staff_active_in_conversation(conversation_id)
         if not admin_active:
-                response_data = process_message(message)
-                handle_new_msg("", conversation_id,  response_data["response"], "bot")
+                response_data = process_message(message, conversation_id)
+                handle_new_msg("", conversation_id, response_data["intent_code"], response_data["response"], "bot")
                 socketio.emit(
                     'new_message',
                     {
@@ -167,7 +168,8 @@ def chat_admin(conversation_id):
         #Lưu tin nhắn người dùng vào DB
         handle_new_msg(
             "",          
-            conversation_id,         
+            conversation_id,  
+            "",          
             message,          
             "admin"            
         )
@@ -218,7 +220,7 @@ def chat_bot(conversation_id):
             message = "Admin đã kết thúc cuộc trò chuyện."
         
 
-        handle_new_msg("", conversation_id, message, "bot")
+        handle_new_msg("", conversation_id, "", message, "bot")
         socketio.emit(
             "new_message",
             {

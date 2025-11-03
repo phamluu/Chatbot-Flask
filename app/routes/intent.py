@@ -4,7 +4,7 @@ from flask_security import roles_required, login_required
 from flask import Blueprint, flash, jsonify, redirect, request, url_for
 
 from app.services.intent_service import (
-    handle_delete_intent, handle_delete_intent_response, 
+    handle_delete_intent, handle_delete_intent_input, handle_delete_intent_response, 
     handle_manage_intent, handle_manage_intent_input,
       handle_manage_intent_response, handle_update_intent, 
       handle_update_intent_input, handle_update_intent_response
@@ -98,7 +98,7 @@ def update_intent_input(id):
 @intent_bp.route('/intent_input/delete/<int:id>', methods=['POST'])
 @roles_required('admin')
 def delete_intent_input(id):
-    return handle_delete_intent(id)
+    return handle_delete_intent_input(id)
 #end
 
 # intent response management routes
