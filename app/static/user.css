@@ -1,3 +1,8 @@
 .form-group.user-message {
             text-align: right;
         }
+@media screen and (max-width: 600px) {
+    .chat-widget-frame {
+       right:  0!important;
+}
+}

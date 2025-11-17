@@ -1,17 +1,18 @@
 (function() {
     const chatFrame = document.createElement('iframe');
-    //chatFrame.src = "https://chatbot.inanhonglen.com";
     chatFrame.src = "http://localhost:5000/";
+    chatFrame.className = "chat-widget-frame";
     chatFrame.style.position = "fixed";
     chatFrame.style.bottom = "20px";
     chatFrame.style.right = "20px";
-    chatFrame.style.width = "350px";
-    chatFrame.style.height = "430px";
+    chatFrame.style.width = "400px";
+    chatFrame.style.height = "500px";
     chatFrame.style.border = "none";
     chatFrame.style.borderRadius = "10px";
     chatFrame.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
     chatFrame.style.overflow = "hidden";
     chatFrame.style.maxWidth = "100%";
+    chatFrame.style.maxHeight = "90%";
     chatFrame.style.zIndex = 9999;
     // Tạo nút Icon chat
     const toggleButton = document.createElement('button');
@@ -46,13 +47,13 @@
     const closeButton = document.createElement('button');
     closeButton.innerText = "X";
     closeButton.style.position = "fixed";
-    closeButton.style.bottom = "414px";
+    closeButton.style.bottom = "475px";
     closeButton.style.right = "-10px";
     closeButton.style.backgroundColor = "red";
     closeButton.style.color = "white";
     closeButton.style.border = "none";
     closeButton.style.borderRadius = "50%";
-    closeButton.style.width = "30px";
+    closeButton.style.width = "38px";
     closeButton.style.height = "30px";
     closeButton.style.cursor = "pointer";
     closeButton.style.zIndex = 9999;
@@ -73,3 +74,14 @@
     chatFrame.style.display = "none";
     closeButton.style.display = "none";
 })();
+
+// Style cho mobile
+function applyMobileStyle() {
+    if (window.innerWidth <= 768) {
+        chatFrame.style.right = "0";
+        chatFrame.style.left = "0";
+    } 
+}
+// Áp dụng khi load và khi resize
+applyMobileStyle();
+window.addEventListener("resize", applyMobileStyle);

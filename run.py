@@ -20,7 +20,7 @@ if __name__ == "__main__":
     socketio.run(
         app, 
         host="0.0.0.0", 
-        port=5000, 
-        debug=True,
-        use_reloader=True  # Tắt reloader để tránh lỗi khi sử dụng socketio
+        port=8000, 
+        debug=False,
+        use_reloader=True,  # Tắt reloader để tránh lỗi khi sử dụng socketio
     )

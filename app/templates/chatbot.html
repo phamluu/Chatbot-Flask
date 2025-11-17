@@ -7,12 +7,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='user.css') }}">
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <title>Chatbot</title>
+    <style>
+        @media screen and (max-width: 600px) {
+            .chat-widget-frame {
+                right: 0 !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <div
-        style="position: fixed; width: 100%; left: 0; top: 0; overflow: hidden; text-align: center;
+        style="padding: 0.7rem 0; position: fixed; width: 100%; left: 0; top: 0; overflow: hidden; text-align: center;
         background: #e01a1a; color: #fff; text-transform: uppercase; align-items: center; font-weight: 700; align-content: center;">
-        HỖ TRỢ TRỰC TUYẾN - TƯ VẤN MIỄN PHÍ 24/7 - {{conversation.id}}
+        HỖ TRỢ TRỰC TUYẾN {{conversation.id}}
     </div>
     <div id="result">
         <div class="form-group bot-reply">
@@ -41,7 +48,12 @@
     </div>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        const socket = io();
+        //const socket = io();
+        const socket = io({
+            transports: ["websocket"],   // Không cho phép polling
+            upgrade: false               // Không nâng cấp, chỉ WebSocket
+        });
+
         const form = document.getElementById('chat-form');
         const resultDiv = document.getElementById('result');
         const messageInput = document.getElementById('message');

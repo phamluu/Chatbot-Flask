@@ -11,6 +11,9 @@ csrf = CSRFProtect()
 
 db = SQLAlchemy()
 migrate = Migrate()
-socketio = SocketIO()
+socketio = SocketIO(
+    cors_allowed_origins="*",
+    async_mode="eventlet",
+)
 security = Security()
 mail = Mail()
