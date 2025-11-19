@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <!-- <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script> -->
+    <!-- <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script> -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         const staffId = 42;
         //window.socket = io({ query: { user_id: staffId } });
@@ -31,6 +31,15 @@
     <header>
         <div class="container d-flex justify-content-between align-items-center">
             <h1 class="header-title">ỨNG DỤNG QUẢN LÝ CHAT</h1>
+            <div id="notification-container" style="
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 9999;
+                width: auto;
+            "></div>
+
             <a href="/logout" class="btn btn-outline-light logout-btn">Đăng xuất</a>
         </div>
     </header>
@@ -138,6 +147,36 @@
 
         });
 
+        window.socket.on('new_tracking_event', function (data) {
+                const container = document.getElementById('notification-container');
+                if (!container) return;
+
+                // Tạo thông báo
+                const notif = document.createElement('div');
+                notif.textContent = "📌 Có truy cập mới!";
+                notif.style.background = "#0d6efd";
+                notif.style.color = "#fff";
+                notif.style.padding = "10px 20px";
+                notif.style.marginTop = "5px";
+                notif.style.borderRadius = "5px";
+                notif.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+                notif.style.opacity = "0";
+                notif.style.transition = "opacity 0.3s ease";
+
+                container.appendChild(notif);
+
+                // Hiển thị thông báo
+                setTimeout(() => {
+                    notif.style.opacity = "1";
+                }, 10);
+
+                // Ẩn sau 3 giây
+                setTimeout(() => {
+                    notif.style.opacity = "0";
+                    setTimeout(() => notif.remove(), 300);
+                }, 3000);
+            });
+
         function addToChat(user_id, staff_id) {
             socket.emit('new_conversation', {
                 user_id,
@@ -149,71 +188,7 @@
             socket.emit('get_users');
         };
 
-        // window.socket.on('update_user_list', function (user_data) {
-        //     const userList = document.getElementById('customer-list');
-        //     userList.innerHTML = '';
-        //     user_data.forEach(function (user, index) {
-        //         const userItem = document.createElement('li');
-        //         userItem.className = 'list-group-item';
-        //         userItem.innerHTML = `${index + 1}. ${user.username} - ${user.email}`;
-        //         userItem.addEventListener('click', function () {
-        //             if (!user.conversation_id) {
-        //                 addToChat(user.id, staffId);
-        //             } else {
-        //                 console.log('Hội thoại đã tồn tại.');
-        //                 openWindow(user.id, user.conversation_id);
-        //             }
-        //         });
-        //         userList.appendChild(userItem);
-        //     });
-        // });
 
-        // function sendMessage(userId, conversation_id) {
-        //     const messageInput = document.getElementById('message-input-' + userId);
-        //     const message = messageInput.value.trim();
-        //     if (message) {
-        //         socket.emit('new_message', {
-        //             message,
-        //             conversation_id,
-        //             sender_id: userId,
-        //             message_type: 'staff'
-        //         });
-        //         messageInput.value = '';
-        //     }
-        // }
-
-        // function openWindow(user_id, conversation_id) {
-        //     const converList = document.getElementById('chat-windows');
-        //     const converItem = `
-        //         <div class="chat-window">
-        //             <div class="title d-flex justify-content-between align-items-center">
-        //                 <span>Chat với khách hàng ${user_id}</span>
-        //                 <div>
-        //                     <button class="btn btn-sm btn-outline-secondary me-2" onclick="toggleChatWindow(${user_id})">_</button>
-        //                     <button class="btn btn-sm btn-outline-danger" onclick="closeChatWindow()">X</button>
-        //                 </div>
-        //             </div>
-        //             <div class="chat-box" id="chat-box-${conversation_id}"></div>
-        //             <div class="input-container">
-        //                 <input type="text" id="message-input-${user_id}" class="form-control" placeholder="Nhập tin nhắn...">
-        //                 <button class="btn btn-primary" onclick="sendMessage(${user_id}, ${conversation_id})">Gửi</button>
-        //             </div>
-        //         </div>`;
-        //     converList.innerHTML = converItem;
-        //     loadMessages(conversation_id);
-        // }
-
-        // function loadMessages(conversation_id) {
-        //     fetch(`/api/messages?conversation_id=${conversation_id}`)
-        //         .then(response => response.json())
-        //         .then(messages => {
-        //             const chatBox = document.getElementById(`chat-box-${conversation_id}`);
-        //             chatBox.innerHTML = messages
-        //                 .map(msg => `<div class="message ${msg.message_type}"><b>${msg.message_type}:</b> ${msg.content}</div>`)
-        //                 .join('');
-        //         })
-        //         .catch(err => console.error('Lỗi tải tin nhắn:', err));
-        // }
     </script>
 </body>
 

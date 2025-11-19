@@ -1,150 +1,38 @@
-import traceback
-from flask import Flask, current_app, render_template
-from app.config import Config  # 🔁 Import Config chuẩn
-from app.extensions import db, migrate, socketio, security, mail, csrf  # ✅ Đã được tách ra đúng cách
+from flask import Flask
+from app.config import Config
+from app.extensions import db, migrate, mail, socketio, security, csrf
 from flask_security import SQLAlchemyUserDatastore
-from app.models import Conversation, Message, User, Role
+from app.models import User, Role
+
+from app.routes import register_routes
+from app.utils.error_handlers import register_error_handlers
+from app.utils.context_processors import inject_conversations
 
 
 def create_app(use_socketio=False):
     app = Flask(__name__)
-    app.debug = True
-
-    csrf.init_app(app)
     app.config.from_object(Config)
 
-    # Khởi tạo extensions
+    # Extensions
+    csrf.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
-    mail.init_app(app)  # Khởi tạo Flask-Mail
+    mail.init_app(app)
 
-    # Flask-Security
-    user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-    security.init_app(app, user_datastore, register_blueprint=True)
+    # Security
+    user_store = SQLAlchemyUserDatastore(db, User, Role)
+    security.init_app(app, user_store, register_blueprint=True)
 
-    # ONLY INIT socketio WHEN NOT USING WSGI (dev mode)
     if use_socketio:
         socketio.init_app(app)
 
-    # đăng ký dashboard blueprint
-    from app.routes.dashboard import dashboard_bp as dashboard
-    app.register_blueprint(dashboard)
-    # end
+    # Register Routes
+    register_routes(app)
 
-    # Đăng ký API nhân viên
-    from app.routes.staff import staff_bp as staff
-    app.register_blueprint(staff)
+    # Error Handlers
+    register_error_handlers(app)
 
-    # Đăng ký API người dùng
-    from app.routes.user import user_bp as user
-    app.register_blueprint(user)
+    # Context Processors
+    app.context_processor(inject_conversations)
 
-    # Đăng ký API chatbot riêng biệt
-    from app.routes.chatbot_api import chatbot_api
-    app.register_blueprint(chatbot_api)
-    
-    # Đăng ký các route liên quan đến intent
-    from app.routes.intent import intent_bp as intent
-    app.register_blueprint(intent)
-    # end
-
-    # from app.routes.chat_routes import chat_bp as chat
-    # app.register_blueprint(chat)
-
-    
-    @app.errorhandler(403)
-    def forbidden_error(error):
-        return render_template('403.html'), 403
-
-    @app.errorhandler(500)
-    def internal_error(error):
-        return f"""
-        <h1>500 Internal Server Error</h1>
-        <pre>{traceback.format_exc()}</pre>
-        """, 500
-    @app.context_processor
-    def inject_conversations():
-        try:
-            # Lấy tất cả hội thoại
-            conversations = db.session.query(Conversation).all()
-
-            # Tạo danh sách dict chứa hội thoại + tin nhắn cuối cùng
-            sidebar_conversations = []
-            for c in conversations:
-                last_message = (
-                    db.session.query(Message)
-                    .filter(Message.conversation_id == c.id)
-                    .order_by(Message.sent_at.desc())
-                    .first()
-                )
-                sidebar_conversations.append({
-                    "id": c.id,
-                    "user_id": c.user_id,
-                    "status": c.status,
-                    "last_message": (
-                        {
-                            "id": last_message.id,
-                            "sender_id": last_message.sender_id,
-                            "message": last_message.message,
-                            "message_type": last_message.message_type,
-                            "sent_at": last_message.sent_at.strftime("%Y-%m-%d %H:%M:%S") if last_message.sent_at else None
-                        }
-                        if last_message else None
-                    )
-                })
-            
-            # 🔽 Sắp xếp theo last_message.sent_at giảm dần
-            sidebar_conversations.sort(
-                key=lambda c: c["last_message"]["sent_at"] if c["last_message"] else "",
-                reverse=True
-            )
-
-            print("Injected conversations:", sidebar_conversations)
-            return dict(sidebar_conversations=sidebar_conversations)
-        except Exception as e:
-            current_app.logger.error(f"Lỗi khi inject_conversations: {e}")
-            return dict(sidebar_conversations=[])
-
-        finally:
-            db.session.close()
-
-    # @app.context_processor
-    # def inject_conversations():
-    #     try:
-    #         conversations = (
-    #             db.session.query(Conversation)
-    #             .all()
-    #         )
-    #         print("Injected conversations:", conversations)
-    #         return dict(
-    #             sidebar_conversations=[
-    #                 {
-    #                     "id": c.id,
-    #                     "user_id": c.user_id,
-    #                     "status": c.status,
-    #                     "last_message": (
-    #                             lambda m: {
-    #                                 "id": m.id,
-    #                                 "sender_id": m.sender_id,
-    #                                 "message": m.message,
-    #                                 "message_type": m.message_type,
-    #                                 "sent_at": m.sent_at.strftime("%Y-%m-%d %H:%M:%S") if m.sent_at else None
-    #                             }
-    #                             if m else None
-    #                         )(
-    #                             db.session.query(Message)
-    #                             .filter(Message.conversation_id == c.id)
-    #                             .order_by(Message.sent_at.desc())
-    #                             .first()
-    #                         )
-    #                 }
-    #                 for c in conversations
-    #             ]
-    #         )
-    #     except Exception as e:
-    #         current_app.logger.error(f"Lỗi khi inject_conversations: {e}")
-    #         return dict(sidebar_conversations=[])
-    #     finally:
-    #         db.session.close()  
     return app
-

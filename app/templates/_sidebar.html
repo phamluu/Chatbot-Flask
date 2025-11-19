@@ -6,8 +6,9 @@
                                     Danh sách người dùng</a></li>
                             <li><a href="/intent" class="{% if request.path.startswith('/intent') %}active{% endif %}">➤
                                     Phân loại ý định</a></li>
+                            <li><a href="/admin/logs" class="{% if request.path.startswith('/admin/logs') %}active{% endif %}">➤
+                            Lịch sử truy cập</a></li>
                         </ul>
-                        <hr>
                         <div id="customer-list-container">
                             <h6>Khách hàng online <span class="text-muted">_</span></h6>
                             <ul id="customer-list" class="list-group small">

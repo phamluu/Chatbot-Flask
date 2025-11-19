@@ -27,6 +27,7 @@
         }
         .sidebar ul li a {
             text-decoration: none;
+            overflow: hidden;
         }
         .sidebar ul li a strong{
            color: #007bff;

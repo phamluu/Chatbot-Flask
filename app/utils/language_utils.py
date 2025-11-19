@@ -45,8 +45,8 @@ def predict_intent_cached(text: str) -> str:
         outputs = model(**inputs)
         # Một số model trả tuple, một số trả object với .logits
         logits = outputs.logits if hasattr(outputs, "logits") else outputs[0]
-        print(f"🧩 Logits for '{text}':", logits.cpu().numpy())
-        print("Predicted index:", int(logits.argmax(dim=-1)))
+        # print(f"🧩 Logits for '{text}':", logits.cpu().numpy())
+        # print("Predicted index:", int(logits.argmax(dim=-1)))
 
         # kiểm tra logits để debug nếu cần
         # print("logits:", logits.cpu().numpy())

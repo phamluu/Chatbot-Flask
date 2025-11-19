@@ -17,7 +17,7 @@ chatbot_api = Blueprint('chatbot_api', __name__) #endpoint: chatbot_api
 active_sessions = {}
 pending_messages = []  # lưu tin nhắn chờ admin xử lý
 
-#User
+#Link tích hợp vào website theo dõi
 @chatbot_api.route("/", methods=["GET"])
 def chatbot_view():
     user_id = session.get("user_id") # id của người dùng được tạo ngẫu nhiên và lưu trong session
@@ -35,8 +35,6 @@ def chatbot_view():
         convo = get_or_create_open_conversation(user_id)
         session["conversation_id"] = convo.id
     messages = get_messages_by_conversation_id(convo.id)
-    # print("=== SESSION HIỆN TẠI ===")
-    # print(dict(session))
     return render_template("chatbot.html", conversation=convo, messages=messages)
 
 # gửi tin nhắn
@@ -138,7 +136,6 @@ def view_conversation(conversation_id):
     admin_active = is_staff_active_in_conversation(convo.id)
     #tạm
     #key = f"admin_active_{conversation_id}"
-    print(f"session hội thoại 1: 🔄 {admin_active}")
     #end tạm
     return render_template("chat_detail.html", conversation=convo, messages=messages, admin_active=admin_active)
 

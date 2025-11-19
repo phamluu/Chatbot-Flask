@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+/* Scroll ngang chỉ dùng trên desktop nhỏ nếu cần */
+.table-wrapper {
+    width: 100%;
+}
+
+/* Bảng */
+table {border-collapse: collapse; width: 100%;}
+th, td {border: 1px solid #ccc; padding: 6px; vertical-align: top;}
+th {background: #f3f3f3; text-align: left;}
+
+/* Cột ngày và giờ không xuống dòng */
+.nowrap {white-space: nowrap;}
+
+/* Cột dài có thể xuống dòng */
+.break-word {word-break: break-word; word-wrap: break-word;}
+
+/* Responsive: stacked table cho mobile */
+@media screen and (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+    }
+
+    thead tr { display: none; } /* Ẩn header cũ */
+
+    tr {
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
+
+    td {
+        border: none;
+        padding: 4px 0;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    /* Nhãn cho mỗi field */
+    td:before {
+        position: absolute;
+        top: 4px;
+        left: 6px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+    }
+
+    td:nth-of-type(1):before { content: "Date"; }
+    td:nth-of-type(2):before { content: "Time"; }
+    td:nth-of-type(3):before { content: "IP"; }
+    td:nth-of-type(4):before { content: "User ID"; }
+    td:nth-of-type(5):before { content: "Location"; }
+    td:nth-of-type(6):before { content: "URL"; }
+    td:nth-of-type(7):before { content: "Referrer"; }
+    td:nth-of-type(8):before { content: "User Agent"; }
+}
+</style>
+
+<h2>Tracking Logs ( {{ logs|length }} )</h2>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>URL</th>
+                <th>Referrer</th>
+                <th>IP</th>
+                <th>User ID</th>
+                <th>User Agent</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+        {% set date, time = log.time.split("T") %}
+        <tr>
+            <td class="nowrap">{{ loop.index }}</td>
+            <td class="nowrap">{{ date }}</td>
+            <td class="nowrap">{{ time.split(".")[0] }}</td>
+            <td class="break-word">
+                {{ log.get('location', {}).get('city', '') }},
+                {{ log.get('location', {}).get('region', '') }},
+                {{ log.get('location', {}).get('country', '') }}
+            </td>
+            <td class="break-word">{{ log.url }}</td>
+            <td class="break-word">{{ log.ref }}</td>
+            <td class="nowrap">{{ log.ip }}</td>
+            <td class="break-word">{{ log.uid }}</td>
+            <td class="break-word">{{ log.ua }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        console.log("Logs script loaded, socket =", window.socket);
+        const socket = window.socket;
+        socket.on("connect", () => {
+            console.log("📡 Logs page socket connected!");
+        });
+        socket.on("new_tracking_event", data => {
+            location.reload();
+        });
+    });
+</script>
+
+{% endblock %}
